@@ -30,7 +30,7 @@ Transform:
   m_GameObject: {fileID: 712322159078224556}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 9.19, y: 1.91, z: 0}
-  m_LocalScale: {x: 0.9649, y: 1, z: 10}
+  m_LocalScale: {x: 1, y: 1, z: 10}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4697619630183781330}
@@ -170,6 +170,7 @@ MonoBehaviour:
   firstShotDelay: 2
   bulletPrefab: {fileID: 1110330690407861807, guid: 745a363e84fa5c14aa347e091b79e3ed, type: 3}
   firePoint: {fileID: 4697619630183781330}
+  muzzleFlashPrefab: {fileID: 4669112987479109372, guid: 271a51696c6bb8e459e0c0a0619ec513, type: 3}
   maxHP: 3
   hitColor: {r: 1, g: 0, b: 0, a: 1}
   hitFlashDuration: 0.2
@@ -218,7 +219,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3949057388701714100}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1, y: 0, z: 0}
+  m_LocalPosition: {x: -0.928, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
