@@ -1241,11 +1241,13 @@ MonoBehaviour:
   normalBulletPrefab: {fileID: 519889055450138922, guid: 44242baff5b8d804e8136d3b4a9c90dc, type: 3}
   machineGunBulletPrefab: {fileID: 519889055450138922, guid: 68bc8bdfb24978a41a960f4300b84689, type: 3}
   shotgunBulletPrefab: {fileID: 959396421581127210, guid: b66d7cdff97b903408715a5b1347ef6e, type: 3}
+  homingBulletPrefab: {fileID: 8609818429516020652, guid: a03bf1458c8fd9c4b8aa4905e68e2bea, type: 3}
   normalFireRate: 0.25
   machineGunFireRate: 0.1
   shotgunFireRate: 0.5
   machineGunAmmo: 50
   shotgunAmmo: 10
+  homingAmmo: 15
 --- !u!95 &207591625
 Animator:
   serializedVersion: 5
@@ -2598,7 +2600,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 5
+  orthographic size: 6.477246
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
@@ -2622,7 +2624,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 519420028}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.06, z: -10}
+  m_LocalPosition: {x: 0, y: 4.52, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2638,16 +2640,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 519420028}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 327dbcebff3321946b465301a8bc00f6, type: 3}
+  m_Script: {fileID: 11500000, guid: cbf96f81d22b1a840aea316c08c14809, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   target: {fileID: 207591620}
+  offset: {x: 0, y: 0, z: 0}
   smoothSpeed: 0.125
-  offset: {x: 0, y: 1, z: -1}
-  minY: 2.5
-  maxY: 6
+  minY: 4
+  maxY: 5
   bossActive: 0
-  cam: {fileID: 519420031}
+  bossMinLimit: {x: 0, y: 0}
+  bossMaxLimit: {x: 0, y: 0}
 --- !u!1001 &535051835
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3365,11 +3368,11 @@ PrefabInstance:
       objectReference: {fileID: 519889055450138922, guid: 68bc8bdfb24978a41a960f4300b84689, type: 3}
     - target: {fileID: 244885739738730733, guid: d523f42d72c3f9345946c811fd31a6c2, type: 3}
       propertyPath: m_RootOrder
-      value: 50
+      value: 51
       objectReference: {fileID: 0}
     - target: {fileID: 244885739738730733, guid: d523f42d72c3f9345946c811fd31a6c2, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -7.08
+      value: -7.42
       objectReference: {fileID: 0}
     - target: {fileID: 244885739738730733, guid: d523f42d72c3f9345946c811fd31a6c2, type: 3}
       propertyPath: m_LocalPosition.y
@@ -3904,6 +3907,79 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 920779610}
   m_CullTransparentMesh: 1
+--- !u!1001 &953598155
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -156622535407116910, guid: d523f42d72c3f9345946c811fd31a6c2, type: 3}
+      propertyPath: gunType
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: -156622535407116910, guid: d523f42d72c3f9345946c811fd31a6c2, type: 3}
+      propertyPath: ammoAmount
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: -156622535407116910, guid: d523f42d72c3f9345946c811fd31a6c2, type: 3}
+      propertyPath: bulletPrefab
+      value: 
+      objectReference: {fileID: 8609818429516020652, guid: a03bf1458c8fd9c4b8aa4905e68e2bea, type: 3}
+    - target: {fileID: 244885739738730733, guid: d523f42d72c3f9345946c811fd31a6c2, type: 3}
+      propertyPath: m_RootOrder
+      value: 48
+      objectReference: {fileID: 0}
+    - target: {fileID: 244885739738730733, guid: d523f42d72c3f9345946c811fd31a6c2, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -4.189837
+      objectReference: {fileID: 0}
+    - target: {fileID: 244885739738730733, guid: d523f42d72c3f9345946c811fd31a6c2, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.5497551
+      objectReference: {fileID: 0}
+    - target: {fileID: 244885739738730733, guid: d523f42d72c3f9345946c811fd31a6c2, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 244885739738730733, guid: d523f42d72c3f9345946c811fd31a6c2, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 244885739738730733, guid: d523f42d72c3f9345946c811fd31a6c2, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 244885739738730733, guid: d523f42d72c3f9345946c811fd31a6c2, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 244885739738730733, guid: d523f42d72c3f9345946c811fd31a6c2, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 244885739738730733, guid: d523f42d72c3f9345946c811fd31a6c2, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 244885739738730733, guid: d523f42d72c3f9345946c811fd31a6c2, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 244885739738730733, guid: d523f42d72c3f9345946c811fd31a6c2, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1619258027015474128, guid: d523f42d72c3f9345946c811fd31a6c2, type: 3}
+      propertyPath: m_Name
+      value: Boxgun (1)
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: d523f42d72c3f9345946c811fd31a6c2, type: 3}
 --- !u!1 &959822717
 GameObject:
   m_ObjectHideFlags: 0
@@ -5819,7 +5895,7 @@ PrefabInstance:
       objectReference: {fileID: 959396421581127210, guid: b66d7cdff97b903408715a5b1347ef6e, type: 3}
     - target: {fileID: 244885739738730733, guid: d523f42d72c3f9345946c811fd31a6c2, type: 3}
       propertyPath: m_RootOrder
-      value: 48
+      value: 49
       objectReference: {fileID: 0}
     - target: {fileID: 244885739738730733, guid: d523f42d72c3f9345946c811fd31a6c2, type: 3}
       propertyPath: m_LocalPosition.x
@@ -5864,6 +5940,10 @@ PrefabInstance:
     - target: {fileID: 1619258027015474128, guid: d523f42d72c3f9345946c811fd31a6c2, type: 3}
       propertyPath: m_Name
       value: Boxgun
+      objectReference: {fileID: 0}
+    - target: {fileID: 1619258027015474128, guid: d523f42d72c3f9345946c811fd31a6c2, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -5983,7 +6063,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 49
+  m_RootOrder: 50
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1635923423
 GameObject:
@@ -6731,6 +6811,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1837302584}
   - component: {fileID: 1837302583}
+  - component: {fileID: 1837302585}
   m_Layer: 0
   m_Name: BossCamera
   m_TagString: Untagged
@@ -6804,6 +6885,27 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!95 &1837302585
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1837302581}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 43b6df0df33dec046933d574c10ca2a8, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &1848729638
 GameObject:
   m_ObjectHideFlags: 0

@@ -9,6 +9,13 @@ public class PlayerShooting : MonoBehaviour
     public Transform firePointDown;
     public Transform crouchFirePoint;
 
+    [Header("Crouch Fire Points")]
+    public Transform crouchFirePointRight;
+    public Transform crouchFirePointLeft;
+    public Transform crouchFirePointUp;
+    public Transform crouchFirePointDown;
+
+
     [Header("Muzzle Flash")]
     public GameObject muzzleFlashPrefab;
     private GameObject currentMuzzleFlash;
@@ -96,18 +103,29 @@ public class PlayerShooting : MonoBehaviour
 
     Transform GetShootPoint()
     {
-        if (playerMove.IsCrouching && crouchFirePoint != null)
-            return crouchFirePoint;
-
         Vector2 dir = playerMove.ShootDirection;
 
-        if (dir == Vector2.right) return firePointRight;
-        else if (dir == Vector2.left) return firePointLeft;
-        else if (dir == Vector2.up) return firePointUp;
-        else if (dir == Vector2.down) return firePointDown;
+        if (playerMove.IsCrouching)
+        {
+            if (dir == Vector2.right && crouchFirePointRight != null) return crouchFirePointRight;
+            else if (dir == Vector2.left && crouchFirePointLeft != null) return crouchFirePointLeft;
+            else if (dir == Vector2.up && crouchFirePointUp != null) return crouchFirePointUp;
+            else if (dir == Vector2.down && crouchFirePointDown != null) return crouchFirePointDown;
+
+            // fallback
+            if (crouchFirePoint != null) return crouchFirePoint;
+        }
+        else
+        {
+            if (dir == Vector2.right) return firePointRight;
+            else if (dir == Vector2.left) return firePointLeft;
+            else if (dir == Vector2.up) return firePointUp;
+            else if (dir == Vector2.down) return firePointDown;
+        }
 
         return firePointRight;
     }
+
 
     void Shoot(GameObject bulletPrefab, Transform shootPoint, Vector2 direction, float speed)
     {

@@ -59,9 +59,22 @@ public class PlayerMovement : MonoBehaviour
             spriteRenderer.flipX = false;
         }
 
-        rb.velocity = isCrouching ? new Vector2(0, rb.velocity.y) : new Vector2(move * moveSpeed, rb.velocity.y);
-        animator.SetFloat("Speed", Mathf.Abs(move));
+        
+
+        // Animation
+        if (!isCrouching)
+        {
+            rb.velocity = new Vector2(move * moveSpeed, rb.velocity.y);
+            animator.SetFloat("Speed", Mathf.Abs(move));
+        }
+        else // เดินย่อตัว
+        {
+            rb.velocity = new Vector2(move * (moveSpeed * 0.5f), rb.velocity.y); // ลดความเร็ว
+            animator.SetBool("isCrouchWalking", move != 0);
+            animator.SetBool("isCrouchIdle", move == 0);
+        }
     }
+
 
     void Jump()
     {
@@ -83,7 +96,7 @@ public class PlayerMovement : MonoBehaviour
             animator.SetBool("isAimingUp", true);
             animator.SetBool("isAimingDown", false);
         }
-        else if (Input.GetKey(KeyCode.S) && !isCrouching)
+        else if (Input.GetKey(KeyCode.S))
         {
             shootDirection = Vector2.down;
             animator.SetBool("isAimingDown", true);
@@ -91,7 +104,8 @@ public class PlayerMovement : MonoBehaviour
         }
         else
         {
-            // ไม่หันขึ้นหรือลง → ปิด animation
+            // ถ้าไม่เล็งขึ้น/ลง ให้ shootDirection = lastFacing (ซ้าย/ขวา)
+            shootDirection = spriteRenderer.flipX ? Vector2.left : Vector2.right;
             animator.SetBool("isAimingUp", false);
             animator.SetBool("isAimingDown", false);
         }
@@ -104,15 +118,25 @@ public class PlayerMovement : MonoBehaviour
             isCrouching = true;
             circleCollider.radius = originalRadius * 0.5f;
             circleCollider.offset = new Vector2(originalOffset.x, originalOffset.y - (originalRadius * 0.5f));
-            shootDirection = Vector2.right; // ยิงตรงตอนย่อ
+
+            // ❌ ลบ shootDirection = Vector2.right; ออก
+            // ให้ shootDirection ยังคงอิงจากการหันซ้าย/ขวา หรือเล็งขึ้น/ลง
         }
         else
         {
-            isCrouching = false;
-            circleCollider.radius = originalRadius;
-            circleCollider.offset = originalOffset;
+            if (isCrouching)
+            {
+                isCrouching = false;
+                circleCollider.radius = originalRadius;
+                circleCollider.offset = originalOffset;
+
+                animator.SetBool("isCrouchWalking", false);
+                animator.SetBool("isCrouchIdle", false);
+            }
         }
     }
+
+
 
     void OnCollisionEnter2D(Collision2D collision)
     {
