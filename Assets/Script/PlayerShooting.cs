@@ -114,11 +114,22 @@ public class PlayerShooting : MonoBehaviour
         if (bulletPrefab == null || shootPoint == null) return;
 
         GameObject bullet = Instantiate(bulletPrefab, shootPoint.position, Quaternion.identity);
-        Rigidbody2D rb = bullet.GetComponent<Rigidbody2D>();
-        if (rb != null) rb.velocity = direction * speed;
+
+        // ถ้าเป็น HomingBullet ให้กำหนด initialDirection
+        HomingBullet hb = bullet.GetComponent<HomingBullet>();
+        if (hb != null)
+        {
+            hb.initialDirection = direction.normalized;
+        }
+        else
+        {
+            Rigidbody2D rb = bullet.GetComponent<Rigidbody2D>();
+            if (rb != null) rb.velocity = direction.normalized * speed;
+        }
 
         CreateMuzzleFlash(direction, shootPoint);
     }
+
 
     void ShootShotgun(Transform shootPoint, Vector2 direction, float speed)
     {

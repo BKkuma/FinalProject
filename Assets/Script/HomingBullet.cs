@@ -1,4 +1,4 @@
-using UnityEngine;
+Ôªøusing UnityEngine;
 
 public class HomingBullet : MonoBehaviour
 {
@@ -7,20 +7,22 @@ public class HomingBullet : MonoBehaviour
     public int damage = 1;
     public float lifetime = 5f;
 
+    [HideInInspector]
+    public Vector2 initialDirection = Vector2.right; // ‚Üê ‡∏ó‡∏¥‡∏®‡∏ó‡∏≤‡∏á‡πÄ‡∏£‡∏¥‡πà‡∏°‡∏ï‡πâ‡∏ô
+
     private Rigidbody2D rb;
     private Transform target;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        // À“‡ªÈ“À¡“¬∑’Ë¡’ tag ‡ªÁπ Enemy
+
+        // ‡∏´‡∏≤‡πÄ‡∏õ‡πâ‡∏≤‡∏´‡∏°‡∏≤‡∏¢‡∏ó‡∏µ‡πà‡∏°‡∏µ tag ‡πÄ‡∏õ‡πá‡∏ô Enemy
         GameObject enemyObj = GameObject.FindWithTag("Enemy");
         if (enemyObj != null)
-        {
             target = enemyObj.transform;
-        }
 
-        // ∑”≈“¬µ—«‡ÕßÀ≈—ß®“°‡«≈“∑’Ë°”Àπ¥
+        // ‡∏ó‡∏≥‡∏•‡∏≤‡∏¢‡∏ï‡∏±‡∏ß‡πÄ‡∏≠‡∏á‡∏´‡∏•‡∏±‡∏á‡∏à‡∏≤‡∏Å‡πÄ‡∏ß‡∏•‡∏≤‡∏ó‡∏µ‡πà‡∏Å‡∏≥‡∏´‡∏ô‡∏î
         Destroy(gameObject, lifetime);
     }
 
@@ -28,11 +30,11 @@ public class HomingBullet : MonoBehaviour
     {
         if (target == null)
         {
-            rb.velocity = transform.up * speed; // ∂È“‰¡Ë¡’‡ªÈ“À¡“¬ ¬‘ßµ√ß‰ª
+            rb.velocity = initialDirection.normalized * speed; // ‡∏¢‡∏¥‡∏á‡∏ï‡∏£‡∏á‡∏ï‡∏≤‡∏°‡∏ó‡∏¥‡∏®‡∏ó‡∏≤‡∏á Player
             return;
         }
 
-        // À¡ÿπ°√– ÿπ‡¢È“À“‡ªÈ“À¡“¬
+        // ‡∏´‡∏°‡∏∏‡∏ô‡∏Å‡∏£‡∏∞‡∏™‡∏∏‡∏ô‡πÄ‡∏Ç‡πâ‡∏≤‡∏´‡∏≤‡πÄ‡∏õ‡πâ‡∏≤‡∏´‡∏°‡∏≤‡∏¢
         Vector2 direction = (Vector2)target.position - rb.position;
         direction.Normalize();
 
@@ -45,30 +47,19 @@ public class HomingBullet : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Enemy"))
         {
-            // ∫Õ 
+            // ‡∏ö‡∏≠‡∏™
             HelicopterBoss boss = collision.gameObject.GetComponent<HelicopterBoss>();
-            if (boss != null)
-            {
-                boss.TakeDamage(damage);
-            }
+            if (boss != null) boss.TakeDamage(damage);
 
-            // »—µ√Ÿ¿“§æ◊Èπ
+            // ‡∏®‡∏±‡∏ï‡∏£‡∏π‡∏†‡∏≤‡∏Ñ‡∏û‡∏∑‡πâ‡∏ô
             EnemyAI enemy = collision.gameObject.GetComponent<EnemyAI>();
-            if (enemy != null)
-            {
-                enemy.TakeDamage(damage);
-            }
+            if (enemy != null) enemy.TakeDamage(damage);
 
-            // »—µ√Ÿ∫‘π
+            // ‡∏®‡∏±‡∏ï‡∏£‡∏π‡∏ö‡∏¥‡∏ô
             EnemyFlyingAI flyingEnemy = collision.gameObject.GetComponent<EnemyFlyingAI>();
-            if (flyingEnemy != null)
-            {
-                flyingEnemy.TakeDamage(damage);
-            }
+            if (flyingEnemy != null) flyingEnemy.TakeDamage(damage);
         }
 
         Destroy(gameObject);
     }
-
-    
 }

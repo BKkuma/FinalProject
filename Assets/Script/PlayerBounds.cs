@@ -3,16 +3,16 @@
 public class PlayerBounds : MonoBehaviour
 {
     [Header("Camera Settings")]
-    public CameraFollow camFollow; // CameraFollow ปัจจุบัน
+    public CameraFollowLockY camFollow; // ใช้ตัวใหม่
     private float halfWidth;
 
     void Start()
     {
         if (camFollow == null)
         {
-            camFollow = Camera.main?.GetComponent<CameraFollow>();
+            camFollow = Camera.main?.GetComponent<CameraFollowLockY>();
             if (camFollow == null)
-                Debug.LogWarning("PlayerBounds: CameraFollow ยังไม่ถูกกำหนด!");
+                Debug.LogWarning("PlayerBounds: CameraFollowLockY ยังไม่ถูกกำหนด!");
         }
 
         SpriteRenderer sr = GetComponent<SpriteRenderer>();
@@ -29,12 +29,5 @@ public class PlayerBounds : MonoBehaviour
         Vector3 pos = transform.position;
         pos.x = Mathf.Clamp(pos.x, leftLimit, rightLimit);
         transform.position = pos;
-    }
-
-    // ใช้เปลี่ยน CameraFollow ตอนสลับกล้อง
-    public void SetCamera(CameraFollow newCamera)
-    {
-        if (newCamera != null)
-            camFollow = newCamera;
     }
 }
