@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 958894286151254445}
   - component: {fileID: -8922972420494602352}
   - component: {fileID: -347099808150714648}
-  - component: {fileID: 7660880983614207129}
   m_Layer: 6
   m_Name: MACINEGUN
   m_TagString: PlayerBullet
@@ -34,7 +33,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &3882610798275913896
 SpriteRenderer:
@@ -157,22 +156,9 @@ CircleCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 0.5
---- !u!114 &7660880983614207129
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 519889055450138922}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 662b1d2d32a4afd4c99a75c02dec4c27, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  damage: 1
