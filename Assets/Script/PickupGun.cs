@@ -1,17 +1,12 @@
 ﻿using UnityEngine;
 
-public enum GunType
-{
-    Normal,
-    MachineGun,
-    Shotgun
-}
-
 public class PickupGun : MonoBehaviour
 {
-    public GunType gunType = GunType.MachineGun; // ประเภทปืนที่จะให้เก็บ
-    public int ammoAmount = 50;                  // จำนวนกระสุน
-    public GameObject bulletPrefab;              // prefab ของปืนที่จะให้เก็บ
+    public enum GunType { MachineGun, Shotgun, Homing } // ✅ เพิ่ม Homing
+    public GunType gunType;
+
+    public int ammoAmount = 50;
+    public GameObject bulletPrefab;
 
     void OnTriggerEnter2D(Collider2D other)
     {
@@ -24,20 +19,15 @@ public class PickupGun : MonoBehaviour
                 {
                     case GunType.MachineGun:
                         shooting.PickupMachineGun(ammoAmount, bulletPrefab);
-                        Debug.Log("💥 เก็บปืนกลแล้ว!");
                         break;
-
                     case GunType.Shotgun:
                         shooting.PickupShotgun(ammoAmount, bulletPrefab);
-                        Debug.Log("💥 เก็บปืนลูกซองแล้ว!");
                         break;
-
-                    case GunType.Normal:
-                        // ถ้าต้องการสามารถเพิ่มเก็บปืนปกติได้
+                    case GunType.Homing:
+                        shooting.PickupHomingGun(ammoAmount, bulletPrefab); // ✅ ใหม่
                         break;
                 }
             }
-
             Destroy(gameObject);
         }
     }

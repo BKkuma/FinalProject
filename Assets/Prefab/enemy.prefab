@@ -34,7 +34,7 @@ Transform:
   m_Children:
   - {fileID: 4697619630183781330}
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &6617220700260215605
 SpriteRenderer:
@@ -164,7 +164,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 2
   detectionRange: 15
-  stopDistance: 3
+  stopDistance: 5
   fireRate: 0.5
   firstShotDelay: 2
   bulletPrefab: {fileID: 1110330690407861807, guid: 745a363e84fa5c14aa347e091b79e3ed, type: 3}

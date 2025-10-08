@@ -17,6 +17,7 @@ public class PlayerShooting : MonoBehaviour
     public GameObject normalBulletPrefab;
     public GameObject machineGunBulletPrefab;
     public GameObject shotgunBulletPrefab;
+    public GameObject homingBulletPrefab;
 
     [Header("Fire Rates")]
     public float normalFireRate = 0.25f;
@@ -30,9 +31,11 @@ public class PlayerShooting : MonoBehaviour
     [Header("Ammo Settings")]
     public int machineGunAmmo = 50;
     public int shotgunAmmo = 10;
+    public int homingAmmo = 15;
 
     private bool usingMachineGun = false;
     private bool usingShotgun = false;
+    private bool usingHoming = false;
     private GameObject currentBulletPrefab;
 
     void Start()
@@ -49,48 +52,46 @@ public class PlayerShooting : MonoBehaviour
 
     void HandleShoot()
     {
-        if (!Input.GetKey(KeyCode.K))
+        if (Input.GetKey(KeyCode.K))
         {
-            if (animator != null) animator.SetBool("isShooting", false);
-            return;
-        }
+            if (animator != null) animator.SetBool("isShooting", true);
 
-        if (animator != null) animator.SetBool("isShooting", true);
-
-        if (Time.time < nextFireTime) return;
-
-        Transform shootPoint = GetShootPoint();
-        Vector2 direction = playerMove.ShootDirection;
-
-        if (usingShotgun)
-        {
-            ShootShotgun(shootPoint, direction, 10f);
-            shotgunAmmo--;
-            if (shotgunAmmo <= 0)
+            if (Time.time >= nextFireTime)
             {
-                usingShotgun = false;
-                currentBulletPrefab = normalBulletPrefab;
-                Debug.Log("🔁 หมดกระสุนลูกซอง! กลับไปปืนปกติ");
+                Transform shootPoint = GetShootPoint();
+                Vector2 direction = playerMove.ShootDirection;
+
+                if (usingShotgun)
+                {
+                    ShootShotgun(shootPoint, direction, 10f);
+                    shotgunAmmo--;
+                    if (shotgunAmmo <= 0) ResetToNormalGun();
+                    nextFireTime = Time.time + shotgunFireRate;
+                }
+                else if (usingHoming)
+                {
+                    Shoot(currentBulletPrefab, shootPoint, direction, 8f);
+                    homingAmmo--;
+                    if (homingAmmo <= 0) ResetToNormalGun();
+                    nextFireTime = Time.time + 0.4f;
+                }
+                else
+                {
+                    Shoot(currentBulletPrefab, shootPoint, direction, usingMachineGun ? 12f : 10f);
+                    if (usingMachineGun)
+                    {
+                        machineGunAmmo--;
+                        if (machineGunAmmo <= 0) ResetToNormalGun();
+                        nextFireTime = Time.time + machineGunFireRate;
+                    }
+                    else
+                    {
+                        nextFireTime = Time.time + normalFireRate;
+                    }
+                }
             }
-            nextFireTime = Time.time + shotgunFireRate;
         }
-        else if (usingMachineGun)
-        {
-            Shoot(currentBulletPrefab, shootPoint, direction, 12f);
-            machineGunAmmo--;
-            if (machineGunAmmo <= 0)
-            {
-                usingMachineGun = false;
-                currentBulletPrefab = normalBulletPrefab;
-                Debug.Log("🔁 หมดกระสุนปืนกล! กลับไปปืนปกติ");
-            }
-            nextFireTime = Time.time + machineGunFireRate;
-        }
-        else
-        {
-            Shoot(currentBulletPrefab, shootPoint, direction, 10f);
-            nextFireTime = Time.time + normalFireRate;
-        }
+        else if (animator != null) animator.SetBool("isShooting", false);
     }
 
     Transform GetShootPoint()
@@ -147,6 +148,12 @@ public class PlayerShooting : MonoBehaviour
 
         Destroy(currentMuzzleFlash, 0.1f);
     }
+    void ResetToNormalGun()
+    {
+        usingMachineGun = usingShotgun = usingHoming = false;
+        currentBulletPrefab = normalBulletPrefab;
+        Debug.Log("🔁 หมดกระสุน! กลับมาใช้ปืนปกติ");
+    }
 
     public void PickupMachineGun(int ammoAmount, GameObject newBulletPrefab)
     {
@@ -167,4 +174,14 @@ public class PlayerShooting : MonoBehaviour
 
         Debug.Log($"💥 ได้ปืนลูกซอง! กระสุน {ammoAmount} นัด");
     }
+    public void PickupHomingGun(int ammoAmount, GameObject newBulletPrefab)
+    {
+        usingHoming = true;
+        usingMachineGun = false;
+        usingShotgun = false;
+        homingAmmo = ammoAmount;
+        currentBulletPrefab = newBulletPrefab;
+        Debug.Log($"🎯 ได้ปืนติดตาม! กระสุน {ammoAmount} นัด");
+    }
+
 }
