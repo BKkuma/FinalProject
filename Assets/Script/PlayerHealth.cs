@@ -12,10 +12,13 @@ public class PlayerHealth : MonoBehaviour
     public int autoRespawnLives = 3; // Buddy เกิดอัตโนมัติได้กี่ครั้ง
 
     private bool isDead = false;
-    private int usedLives = 0;
+    public int usedLives = 0;
+    public int UsedLives => usedLives;
+
     private bool isInvincible = false;
 
     private SpriteRenderer sr;
+   
 
     void Start()
     {

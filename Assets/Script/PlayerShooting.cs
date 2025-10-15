@@ -177,7 +177,7 @@ public class PlayerShooting : MonoBehaviour
 
         Destroy(currentMuzzleFlash, 0.1f);
     }
-    void ResetToNormalGun()
+    public void ResetToNormalGun()
     {
         usingMachineGun = usingShotgun = usingHoming = false;
         currentBulletPrefab = normalBulletPrefab;
@@ -212,5 +212,15 @@ public class PlayerShooting : MonoBehaviour
         currentBulletPrefab = newBulletPrefab;
         Debug.Log($"🎯 ได้ปืนติดตาม! กระสุน {ammoAmount} นัด");
     }
+
+
+    // วางไว้ท้าย class PlayerShooting
+    public bool IsUsingMachineGun => usingMachineGun;
+    public bool IsUsingShotgun => usingShotgun;
+    public bool IsUsingHoming => usingHoming;
+
+    public int MachineGunAmmo => machineGunAmmo;
+    public int ShotgunAmmo => shotgunAmmo;
+    public int HomingAmmo => homingAmmo;
 
 }

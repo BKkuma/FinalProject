@@ -13,22 +13,26 @@ public class PickupGun : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             PlayerShooting shooting = other.GetComponent<PlayerShooting>();
-            if (shooting != null)
+            WeaponSlotManager slotManager = other.GetComponent<WeaponSlotManager>();
+
+            if (shooting != null && slotManager != null)
             {
                 switch (gunType)
                 {
                     case GunType.MachineGun:
-                        shooting.PickupMachineGun(ammoAmount, bulletPrefab);
+                        slotManager.AddWeaponToSlot("MachineGun", ammoAmount, bulletPrefab);
                         break;
                     case GunType.Shotgun:
-                        shooting.PickupShotgun(ammoAmount, bulletPrefab);
+                        slotManager.AddWeaponToSlot("Shotgun", ammoAmount, bulletPrefab);
                         break;
                     case GunType.Homing:
-                        shooting.PickupHomingGun(ammoAmount, bulletPrefab); // ✅ ใหม่
+                        slotManager.AddWeaponToSlot("HomingGun", ammoAmount, bulletPrefab);
                         break;
                 }
             }
+
             Destroy(gameObject);
         }
     }
+
 }
