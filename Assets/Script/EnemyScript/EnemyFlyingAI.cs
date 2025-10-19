@@ -28,7 +28,6 @@ public class EnemyFlyingAI : MonoBehaviour
     private float fireCooldown;
     private Rigidbody2D rb;
 
-    // ✅ ตัวแปรใหม่
     private bool canShoot = false;
     private bool startedShootDelay = false;
 
@@ -45,51 +44,61 @@ public class EnemyFlyingAI : MonoBehaviour
     {
         FindClosestPlayer();
 
-        if (targetPlayer != null)
+        if (targetPlayer == null || rb == null) return;
+
+        float distance = Vector2.Distance(transform.position, targetPlayer.position);
+        if (float.IsNaN(distance)) return;
+
+        Vector2 direction = (targetPlayer.position - transform.position).normalized;
+        if (float.IsNaN(direction.x) || float.IsNaN(direction.y)) return;
+
+        // 🧭 การเคลื่อนที่
+        if (distance > orbitDistance)
         {
-            float distance = Vector2.Distance(transform.position, targetPlayer.position);
+            // ยังไกลเกิน → บินเข้าใกล้
+            rb.MovePosition(rb.position + direction * moveSpeed * Time.deltaTime);
+        }
+        else
+        {
+            // อยู่ในระยะ → บินวนเล็กน้อย ไม่หนีออกไป
+            float hoverRadius = 1.5f;         // ขนาดวงที่บินวน
+            float hoverSpeed = 2f;            // ความเร็วในการบินวน
 
-            if (distance < detectionRange)
+            Vector2 hoverOffset = new Vector2(
+                Mathf.Sin(Time.time * hoverSpeed),
+                Mathf.Cos(Time.time * hoverSpeed * 0.5f)
+            ) * hoverRadius * 0.2f;
+
+            rb.MovePosition(rb.position + hoverOffset * Time.deltaTime);
+        }
+
+        // 🔫 ยิงเมื่ออยู่ในระยะ
+        if (distance <= detectionRange)
+        {
+            if (!startedShootDelay)
             {
-                Vector2 direction = (targetPlayer.position - transform.position).normalized;
+                startedShootDelay = true;
+                StartCoroutine(StartShootingAfterDelay(2f));
+            }
 
-                // เข้าใกล้ player จนถึงระยะ orbitDistance
-                if (distance > orbitDistance)
+            if (canShoot)
+            {
+                fireCooldown -= Time.deltaTime;
+                if (fireCooldown <= 0f)
                 {
-                    rb.MovePosition(rb.position + direction * moveSpeed * Time.deltaTime);
-                }
-                else
-                {
-                    // โคจรรอบผู้เล่น
-                    rb.MovePosition(
-                        rb.position + (Vector2)(Quaternion.Euler(0, 0, orbitSpeed * Time.deltaTime)
-                        * (transform.position - targetPlayer.position).normalized) * moveSpeed * Time.deltaTime
-                    );
-                }
-
-                // Flip Sprite
-                spriteRenderer.flipX = direction.x >= 0;
-
-                // ✅ เริ่มนับถอยหลังก่อนยิง
-                if (!startedShootDelay)
-                {
-                    startedShootDelay = true;
-                    StartCoroutine(StartShootingAfterDelay(2f));
-                }
-
-                // ✅ ยิงเฉพาะเมื่อ canShoot = true
-                if (canShoot)
-                {
-                    fireCooldown -= Time.deltaTime;
-                    if (fireCooldown <= 0f)
-                    {
-                        Shoot();
-                        fireCooldown = 1f / fireRate;
-                    }
+                    Shoot();
+                    fireCooldown = 1f / fireRate;
                 }
             }
         }
+
+        // 🔁 หันหน้า
+        if (spriteRenderer != null)
+            spriteRenderer.flipX = direction.x >= 0;
     }
+
+
+
 
     IEnumerator StartShootingAfterDelay(float delay)
     {
@@ -114,7 +123,11 @@ public class EnemyFlyingAI : MonoBehaviour
         }
 
         targetPlayer = closestPlayer;
+
+        if (targetPlayer != null)
+            Debug.Log($"{name} targeting {targetPlayer.name}");
     }
+
 
     void Shoot()
     {
