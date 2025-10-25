@@ -5,7 +5,8 @@ public class EnemyAI : MonoBehaviour
 {
     [Header("Movement & Detection")]
     public float moveSpeed = 3f;
-    public float detectionRange = 10f;
+    [Tooltip("ระยะที่ศัตรูสามารถตรวจเจอผู้เล่นได้")]
+    public float detectionRange = 6f; // 🔹 ลดจาก 10f → 6f
     public float stopDistance = 3f;
 
     [Header("Combat")]
@@ -13,7 +14,7 @@ public class EnemyAI : MonoBehaviour
     public float firstShotDelay = 5f;
     public GameObject bulletPrefab;
     public Transform firePoint;
-    public GameObject muzzleFlashPrefab; // เอฟเฟคสะเก็ดปืน
+    public GameObject muzzleFlashPrefab;
 
     [Header("Stats")]
     public int maxHP = 3;
@@ -46,6 +47,9 @@ public class EnemyAI : MonoBehaviour
     {
         FindClosestPlayer();
         UpdateState();
+
+        // 🔹 เรียกเพื่อให้เห็นเส้นสายตาใน Scene View
+        CanSeePlayer();
     }
 
     void FindClosestPlayer()
@@ -97,38 +101,37 @@ public class EnemyAI : MonoBehaviour
             Vector2 lookDir = (targetPlayer.position - transform.position).normalized;
             spriteRenderer.flipX = (lookDir.x < 0);
 
-            // หมุน/ย้าย FirePoint ตามการ flip ของ Enemy
+            // ปรับตำแหน่ง firePoint ตามการหัน
             if (firePoint != null)
             {
                 Vector3 localPos = firePoint.localPosition;
-                if (spriteRenderer.flipX)
-                    localPos.x = Mathf.Abs(localPos.x) * -1; // flip x
-                else
-                    localPos.x = Mathf.Abs(localPos.x);
+                localPos.x = spriteRenderer.flipX ? -Mathf.Abs(localPos.x) : Mathf.Abs(localPos.x);
                 firePoint.localPosition = localPos;
             }
 
-
-            // ยิง
-            if (!hasStartedShooting)
+            // 🔹 ยิงเฉพาะเมื่อ “เห็นจริง” ผ่านเส้นตรง
+            if (CanSeePlayer())
             {
-                detectTimer += Time.deltaTime;
-                if (detectTimer >= firstShotDelay)
+                if (!hasStartedShooting)
                 {
-                    Shoot();
-                    hasStartedShooting = true;
-                    fireCooldown = 1f / fireRate;
-                    animator.SetBool("isShooting", true);
+                    detectTimer += Time.deltaTime;
+                    if (detectTimer >= firstShotDelay)
+                    {
+                        Shoot();
+                        hasStartedShooting = true;
+                        fireCooldown = 1f / fireRate;
+                        animator.SetBool("isShooting", true);
+                    }
                 }
-            }
-            else
-            {
-                fireCooldown -= Time.deltaTime;
-                if (fireCooldown <= 0f)
+                else
                 {
-                    Shoot();
-                    fireCooldown = 1f / fireRate;
-                    animator.SetBool("isShooting", true);
+                    fireCooldown -= Time.deltaTime;
+                    if (fireCooldown <= 0f)
+                    {
+                        Shoot();
+                        fireCooldown = 1f / fireRate;
+                        animator.SetBool("isShooting", true);
+                    }
                 }
             }
         }
@@ -141,20 +144,65 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
+    // ✅ ใช้เส้น Raycast ตรวจสายตา + Debug แสดงเส้น
+    bool CanSeePlayer()
+    {
+        if (targetPlayer == null) return false;
+
+        Vector2 origin = transform.position;
+        Vector2 direction = (targetPlayer.position - transform.position).normalized;
+        float distanceToPlayer = Vector2.Distance(transform.position, targetPlayer.position);
+
+        Color debugColor = Color.gray;
+
+        if (distanceToPlayer <= detectionRange && Mathf.Abs(targetPlayer.position.y - transform.position.y) <= 1.5f)
+        {
+            RaycastHit2D hit = Physics2D.Raycast(origin, direction, detectionRange, LayerMask.GetMask("Default", "Player"));
+            if (hit.collider != null)
+            {
+                if (hit.collider.CompareTag("Player"))
+                {
+                    debugColor = Color.red; // 🔴 เห็นผู้เล่น
+                    Debug.DrawLine(origin, hit.point, debugColor);
+                    return true;
+                }
+                else
+                {
+                    debugColor = Color.yellow; // 🟡 มีสิ่งกีดขวาง
+                    Debug.DrawLine(origin, hit.point, debugColor);
+                    return false;
+                }
+            }
+        }
+
+        Debug.DrawLine(origin, origin + direction * detectionRange, debugColor);
+        return false;
+    }
+
+    // ✅ วาด Gizmo แสดงระยะมองเห็น
+    void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawWireSphere(transform.position, detectionRange); // วงระยะตรวจจับ
+
+        // วาดเส้นสายตาแนวนอน (ซ้าย-ขวา)
+        Gizmos.color = Color.green;
+        Gizmos.DrawLine(transform.position, transform.position + Vector3.right * detectionRange);
+        Gizmos.DrawLine(transform.position, transform.position - Vector3.right * detectionRange);
+    }
+
     void Shoot()
     {
         if (bulletPrefab != null && firePoint != null && targetPlayer != null)
         {
-            // สร้างกระสุน
             GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
             Rigidbody2D rb = bullet.GetComponent<Rigidbody2D>();
             if (rb != null)
             {
                 Vector2 dir = (targetPlayer.position - firePoint.position).normalized;
-                rb.velocity = dir * 7f; // ปรับ speed ตามต้องการ
+                rb.velocity = dir * 7f;
             }
 
-            // สร้าง Muzzle Flash
             if (muzzleFlashPrefab != null)
             {
                 GameObject flash = Instantiate(muzzleFlashPrefab, firePoint.position, firePoint.rotation);
