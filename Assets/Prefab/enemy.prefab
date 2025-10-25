@@ -164,8 +164,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 3
-  detectionRange: 10
-  stopDistance: 8
+  detectionRange: 7
+  stopDistance: 5
   fireRate: 0.5
   firstShotDelay: 2
   bulletPrefab: {fileID: 1110330690407861807, guid: 745a363e84fa5c14aa347e091b79e3ed, type: 3}
