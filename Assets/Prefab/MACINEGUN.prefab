@@ -10,9 +10,10 @@ GameObject:
   m_Component:
   - component: {fileID: 775921712399259935}
   - component: {fileID: 3882610798275913896}
-  - component: {fileID: 958894286151254445}
   - component: {fileID: -8922972420494602352}
   - component: {fileID: -347099808150714648}
+  - component: {fileID: 6309145891829805798}
+  - component: {fileID: 6602065022249998522}
   m_Layer: 6
   m_Name: MACINEGUN
   m_TagString: PlayerBullet
@@ -29,7 +30,7 @@ Transform:
   m_GameObject: {fileID: 519889055450138922}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 3.8212614, y: -0.09244859, z: 0}
-  m_LocalScale: {x: 0.3, y: 0.3, z: 1}
+  m_LocalScale: {x: 0.5, y: 0.5, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -76,8 +77,8 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: -1010736701, guid: 6c16dd4d48741a446a20d2003fa589f7, type: 3}
-  m_Color: {r: 0, g: 0, b: 0, a: 1}
+  m_Sprite: {fileID: 2114244767, guid: 76b5d5ec246e585458129fa409516413, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -87,19 +88,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &958894286151254445
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 519889055450138922}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 662b1d2d32a4afd4c99a75c02dec4c27, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  damage: 1
 --- !u!50 &-8922972420494602352
 Rigidbody2D:
   serializedVersion: 4
@@ -162,3 +150,32 @@ CircleCollider2D:
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 0.5
+--- !u!114 &6309145891829805798
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 519889055450138922}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81f76e1a461a0464bb2ed079c30f3c15, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  speed: 10
+  damage: 1
+  lifetime: 5
+  direction: {x: 1, y: 0}
+--- !u!114 &6602065022249998522
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 519889055450138922}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 662b1d2d32a4afd4c99a75c02dec4c27, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  damage: 1

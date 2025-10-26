@@ -133,7 +133,7 @@ public class PlayerShooting : MonoBehaviour
 
         GameObject bullet = Instantiate(bulletPrefab, shootPoint.position, Quaternion.identity);
 
-        // ถ้าเป็น HomingBullet ให้กำหนด initialDirection
+        // ✅ ถ้าเป็น HomingBullet ให้กำหนด initialDirection
         HomingBullet hb = bullet.GetComponent<HomingBullet>();
         if (hb != null)
         {
@@ -141,12 +141,25 @@ public class PlayerShooting : MonoBehaviour
         }
         else
         {
+            // ✅ ถ้าเป็น MachineGunBullet ให้กำหนด direction
+            MachineGunBullet mg = bullet.GetComponent<MachineGunBullet>();
+            if (mg != null)
+            {
+                mg.direction = direction.normalized;
+
+                // หมุนหัวกระสุนให้ชี้ไปทิศทางจริง
+                float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - 90f;
+                bullet.transform.rotation = Quaternion.Euler(0, 0, angle);
+            }
+
             Rigidbody2D rb = bullet.GetComponent<Rigidbody2D>();
-            if (rb != null) rb.velocity = direction.normalized * speed;
+            if (rb != null)
+                rb.velocity = direction.normalized * speed;
         }
 
         CreateMuzzleFlash(direction, shootPoint);
     }
+
 
 
     void ShootShotgun(Transform shootPoint, Vector2 direction, float speed)

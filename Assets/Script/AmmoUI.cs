@@ -6,46 +6,52 @@ public class AmmoUI : MonoBehaviour
     public PlayerShooting playerShooting;
 
     [Header("UI References")]
-    public Image ammoIcon;     // ✅ รูปกระสุน
-    public Text ammoText;      // ✅ จำนวนกระสุน
-
-    [Header("Ammo Sprites")]
-    public Sprite normalAmmoSprite;
-    public Sprite machineGunSprite;
-    public Sprite shotgunSprite;
-    public Sprite homingSprite;
+    public Image[] normalAmmoIcons;
+    public Image[] machineGunAmmoIcons;
+    public Image[] shotgunAmmoIcons;
+    public Image[] homingAmmoIcons;
+    public Text ammoText;
 
     void Update()
     {
-        if (playerShooting == null || ammoText == null || ammoIcon == null) return;
+        if (playerShooting == null) return;
 
-        int ammoCount = -1;
+        // ปิดทุก Image ก่อน
+        SetIconsActive(normalAmmoIcons, 0);
+        SetIconsActive(machineGunAmmoIcons, 0);
+        SetIconsActive(shotgunAmmoIcons, 0);
+        SetIconsActive(homingAmmoIcons, 0);
 
-        // เปลี่ยนไอคอนและจำนวนกระสุนตามปืน
+        // แสดงปืนตามชนิด
         if (playerShooting.IsUsingMachineGun)
         {
-            ammoIcon.sprite = machineGunSprite;
-            ammoCount = playerShooting.MachineGunAmmo;
+            SetIconsActive(machineGunAmmoIcons, playerShooting.MachineGunAmmo);
+            ammoText.text = playerShooting.MachineGunAmmo.ToString();
         }
         else if (playerShooting.IsUsingShotgun)
         {
-            ammoIcon.sprite = shotgunSprite;
-            ammoCount = playerShooting.ShotgunAmmo;
+            SetIconsActive(shotgunAmmoIcons, playerShooting.ShotgunAmmo);
+            ammoText.text = playerShooting.ShotgunAmmo.ToString();
         }
         else if (playerShooting.IsUsingHoming)
         {
-            ammoIcon.sprite = homingSprite;
-            ammoCount = playerShooting.HomingAmmo;
+            SetIconsActive(homingAmmoIcons, playerShooting.HomingAmmo);
+            ammoText.text = playerShooting.HomingAmmo.ToString();
         }
         else
         {
-            ammoIcon.sprite = normalAmmoSprite;
+            // ปืนธรรมดา
+            ammoText.text = "∞";
+            SetIconsActive(normalAmmoIcons, normalAmmoIcons.Length); // แสดงไอคอนเต็ม
         }
+    }
 
-        // แสดงจำนวนกระสุน
-        if (ammoCount < 0)
-            ammoText.text = "∞";  // ปืนธรรมดา
-        else
-            ammoText.text = ammoCount.ToString();
+    void SetIconsActive(Image[] icons, int count)
+    {
+        if (icons == null) return;
+        for (int i = 0; i < icons.Length; i++)
+        {
+            icons[i].gameObject.SetActive(i < count);
+        }
     }
 }
