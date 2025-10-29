@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class MissileBoss : MonoBehaviour
 {
@@ -17,12 +17,25 @@ public class MissileBoss : MonoBehaviour
         Destroy(gameObject, lifeTime);
     }
 
-    // ���¡�͹ Instantiate �ҡ Boss
+    // เรียกตอน Instantiate จาก Boss
     public void SetDirection(Vector3 playerPos)
     {
-        if (rb == null) rb = GetComponent<Rigidbody2D>(); // ��Ǩ�ա���
-        Vector3 dir = (playerPos - transform.position).normalized + new Vector3(Random.Range(-0.5f, 0.5f), 0, 0);
+        if (rb == null) rb = GetComponent<Rigidbody2D>();
+
+        // คำนวณทิศทางพื้นฐาน
+        Vector3 dir = (playerPos - transform.position).normalized;
+
+        // เพิ่มความสุ่ม
+        dir += new Vector3(Random.Range(-0.2f, 0.2f), Random.Range(-0.2f, 0.2f), 0);
+        dir.Normalize();
+
+        // ตั้งค่าความเร็ว
         rb.velocity = dir * speed;
+
+        // ✅ หมุนหัวจรวดตาม "ทิศทางสุดท้ายจริงๆ"
+        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+        transform.rotation = Quaternion.Euler(0, 0, angle);
+
     }
 
     void OnTriggerEnter2D(Collider2D other)
@@ -40,7 +53,6 @@ public class MissileBoss : MonoBehaviour
 
     void Explode()
     {
-        // ��� Particle / Effect ���Դ�ç�����
         Destroy(gameObject);
     }
 }
