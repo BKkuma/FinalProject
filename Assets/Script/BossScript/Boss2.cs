@@ -5,11 +5,12 @@ using System.Collections.Generic;
 public class Boss2 : MonoBehaviour
 {
     [Header("Movement & Warp Points")]
-    public Transform[] warpPoints;       // จุดวาร์ปปกติ
-    public Transform centerPoint;        // จุดกลางอากาศช่วง Frenzy
-    public Transform overloadPoint;      // จุดลงหลังบ้าครั่ง
-    public float warpDelay = 5f;         // เวลายืนเฉยหลังยิง
-    public float warpSpeed = 10f;        // ความเร็ววาร์ป (ใช้เป็น Instant ตอนนี้)
+    public Transform[] warpPoints;
+    public Transform centerPoint;
+    public Transform overloadPoint;
+    public float moveSpeed = 20f;       // ความเร็วในการเคลื่อนที่ปกติ
+    public float phase2SpeedMultiplier = 1.5f; // ความเร็วคูณตอน Phase 2
+    public float warpDelay = 5f;
 
     [Header("Attack")]
     public GameObject energyBallPrefab;
@@ -73,16 +74,15 @@ public class Boss2 : MonoBehaviour
     {
         while (currentHP > maxHP / 2)
         {
-            yield return StartCoroutine(WarpAndShoot(phase1Balls));
+            yield return StartCoroutine(MoveAndShoot(phase1Balls, moveSpeed));
         }
         currentPhase = Phase.Frenzy;
     }
 
-    // ---------------- Frenzy (บ้าครั่ง) ----------------
+    // ---------------- Frenzy ----------------
     IEnumerator FrenzyRoutine()
     {
-        // วาร์ปไปกลางอากาศ
-        yield return StartCoroutine(WarpTo(centerPoint.position));
+        yield return StartCoroutine(MoveTo(centerPoint.position, moveSpeed * 1.2f));
 
         isInvincible = true;
         float timer = 0f;
@@ -90,7 +90,6 @@ public class Boss2 : MonoBehaviour
 
         while (timer < frenzyDuration)
         {
-            // ยิง EnergyBall จาก spawn points แบบสุ่มต่อเนื่อง
             Transform spawnPoint = energyBallSpawnPoints[Random.Range(0, energyBallSpawnPoints.Length)];
             Instantiate(energyBallPrefab, spawnPoint.position, Quaternion.identity);
             timer += energyBallDelay;
@@ -101,32 +100,26 @@ public class Boss2 : MonoBehaviour
         currentPhase = Phase.Overload;
     }
 
-    // ---------------- Overload (ลงมาและยืนเฉย) ----------------
+    // ---------------- Overload ----------------
     IEnumerator OverloadRoutine()
     {
-        // วาร์ปไปจุด Overload
-        yield return StartCoroutine(WarpTo(overloadPoint.position));
-
-        // ยืนเฉย 10 วิ
+        yield return StartCoroutine(MoveTo(overloadPoint.position, moveSpeed));
         yield return new WaitForSeconds(10f);
-
         currentPhase = Phase.Phase2;
     }
 
     // ---------------- Phase 2 ----------------
     IEnumerator Phase2Routine()
     {
-        // Phase 2 ยากขึ้น: วาร์ปเร็วขึ้น, ยิงเร็วขึ้น
         float phase2WarpDelay = warpDelay / 2f;
         float phase2EnergyBallDelay = energyBallDelay / 2f;
+        float phase2Speed = moveSpeed * phase2SpeedMultiplier;
 
         while (currentHP > 0)
         {
-            // วาร์ป + ยิงลูกบอล
             Transform target = GetRandomWarpPoint();
-            yield return StartCoroutine(WarpTo(target.position));
+            yield return StartCoroutine(MoveTo(target.position, phase2Speed));
 
-            // ยิง EnergyBall จำนวนมากขึ้น
             List<Transform> availablePoints = new List<Transform>(energyBallSpawnPoints);
             int count = Mathf.Min(phase2Balls, availablePoints.Count);
 
@@ -143,13 +136,12 @@ public class Boss2 : MonoBehaviour
         }
     }
 
-    // ---------------- Warp Helper ----------------
-    IEnumerator WarpAndShoot(int balls)
+    // ---------------- Movement Helper ----------------
+    IEnumerator MoveAndShoot(int balls, float speed)
     {
         Transform target = GetRandomWarpPoint();
-        yield return StartCoroutine(WarpTo(target.position));
+        yield return StartCoroutine(MoveTo(target.position, speed));
 
-        // ยิง EnergyBall จาก spawn points แบบสุ่มไม่ซ้ำ
         List<Transform> availablePoints = new List<Transform>(energyBallSpawnPoints);
         int count = Mathf.Min(balls, availablePoints.Count);
 
@@ -165,34 +157,38 @@ public class Boss2 : MonoBehaviour
         yield return new WaitForSeconds(warpDelay);
     }
 
-    IEnumerator WarpTo(Vector3 targetPos)
+    IEnumerator MoveTo(Vector3 targetPos, float speed)
     {
+        Vector3 startPos = transform.position;
+        float distance = Vector3.Distance(startPos, targetPos);
+        float t = 0f;
+
+        while (t < 1f)
+        {
+            t += Time.deltaTime * (speed / distance);
+            transform.position = Vector3.Lerp(startPos, targetPos, t);
+            yield return null;
+        }
         transform.position = targetPos;
-        yield return null;
     }
 
     Transform GetRandomWarpPoint()
     {
         Transform[] options;
         if (warpPoints.Length > 1)
-        {
             options = System.Array.FindAll(warpPoints, p => p != lastWarpPoint);
-        }
         else
-        {
             options = warpPoints;
-        }
 
         Transform target = options[Random.Range(0, options.Length)];
         lastWarpPoint = target;
         return target;
     }
 
-    // ---------------- Take Damage ----------------
+    // ---------------- Damage ----------------
     public void TakeDamage(int dmg)
     {
         if (isInvincible) return;
-
         currentHP -= dmg;
 
         if (hitFlashRoutine != null)
@@ -217,7 +213,6 @@ public class Boss2 : MonoBehaviour
         hitFlashRoutine = null;
     }
 
-    // ---------------- Collision กับกระสุน Player ----------------
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.CompareTag("PlayerBullet"))
