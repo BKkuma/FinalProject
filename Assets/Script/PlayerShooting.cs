@@ -15,7 +15,6 @@ public class PlayerShooting : MonoBehaviour
     public Transform crouchFirePointUp;
     public Transform crouchFirePointDown;
 
-
     [Header("Muzzle Flash")]
     public GameObject muzzleFlashPrefab;
     private GameObject currentMuzzleFlash;
@@ -44,12 +43,27 @@ public class PlayerShooting : MonoBehaviour
     private bool usingShotgun = false;
     private bool usingHoming = false;
     private GameObject currentBulletPrefab;
+    private bool isMachineGunFiring = false;
+
+
+    // 🎧 เพิ่มส่วนเสียงปืน
+    [Header("Gun Sounds")]
+    public AudioClip normalGunSound;
+    public AudioClip machineGunSound;
+    public AudioClip shotgunSound;
+    public AudioClip homingGunSound;
+    private AudioSource audioSource;
 
     void Start()
     {
         playerMove = GetComponent<PlayerMovement>();
         animator = GetComponent<Animator>();
         currentBulletPrefab = normalBulletPrefab;
+
+        // ✅ เพิ่ม AudioSource อัตโนมัติถ้าไม่มี
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+            audioSource = gameObject.AddComponent<AudioSource>();
     }
 
     void Update()
@@ -63,6 +77,18 @@ public class PlayerShooting : MonoBehaviour
         {
             if (animator != null) animator.SetBool("isShooting", true);
 
+            if (usingMachineGun)
+            {
+                // 🔫 เล่นเสียงค้างตอนเริ่มยิง
+                if (!isMachineGunFiring)
+                {
+                    audioSource.clip = machineGunSound;
+                    audioSource.loop = true;
+                    audioSource.Play();
+                    isMachineGunFiring = true;
+                }
+            }
+
             if (Time.time >= nextFireTime)
             {
                 Transform shootPoint = GetShootPoint();
@@ -71,6 +97,7 @@ public class PlayerShooting : MonoBehaviour
                 if (usingShotgun)
                 {
                     ShootShotgun(shootPoint, direction, 10f);
+                    PlayGunSound(shotgunSound);
                     shotgunAmmo--;
                     if (shotgunAmmo <= 0) ResetToNormalGun();
                     nextFireTime = Time.time + shotgunFireRate;
@@ -78,6 +105,7 @@ public class PlayerShooting : MonoBehaviour
                 else if (usingHoming)
                 {
                     Shoot(currentBulletPrefab, shootPoint, direction, 8f);
+                    PlayGunSound(homingGunSound);
                     homingAmmo--;
                     if (homingAmmo <= 0) ResetToNormalGun();
                     nextFireTime = Time.time + 0.4f;
@@ -85,6 +113,11 @@ public class PlayerShooting : MonoBehaviour
                 else
                 {
                     Shoot(currentBulletPrefab, shootPoint, direction, usingMachineGun ? 12f : 10f);
+
+                    // 🎯 เล่นเฉพาะปืนธรรมดา
+                    if (!usingMachineGun)
+                        PlayGunSound(normalGunSound);
+
                     if (usingMachineGun)
                     {
                         machineGunAmmo--;
@@ -98,8 +131,20 @@ public class PlayerShooting : MonoBehaviour
                 }
             }
         }
-        else if (animator != null) animator.SetBool("isShooting", false);
+        else
+        {
+            // 💥 หยุดเสียงปืนกลเมื่อปล่อยปุ่ม
+            if (isMachineGunFiring)
+            {
+                audioSource.Stop();
+                audioSource.loop = false;
+                isMachineGunFiring = false;
+            }
+
+            if (animator != null) animator.SetBool("isShooting", false);
+        }
     }
+
 
     Transform GetShootPoint()
     {
@@ -111,8 +156,6 @@ public class PlayerShooting : MonoBehaviour
             else if (dir == Vector2.left && crouchFirePointLeft != null) return crouchFirePointLeft;
             else if (dir == Vector2.up && crouchFirePointUp != null) return crouchFirePointUp;
             else if (dir == Vector2.down && crouchFirePointDown != null) return crouchFirePointDown;
-
-            // fallback
             if (crouchFirePoint != null) return crouchFirePoint;
         }
         else
@@ -126,14 +169,12 @@ public class PlayerShooting : MonoBehaviour
         return firePointRight;
     }
 
-
     void Shoot(GameObject bulletPrefab, Transform shootPoint, Vector2 direction, float speed)
     {
         if (bulletPrefab == null || shootPoint == null) return;
 
         GameObject bullet = Instantiate(bulletPrefab, shootPoint.position, Quaternion.identity);
 
-        // ✅ ถ้าเป็น HomingBullet ให้กำหนด initialDirection
         HomingBullet hb = bullet.GetComponent<HomingBullet>();
         if (hb != null)
         {
@@ -141,13 +182,10 @@ public class PlayerShooting : MonoBehaviour
         }
         else
         {
-            // ✅ ถ้าเป็น MachineGunBullet ให้กำหนด direction
             MachineGunBullet mg = bullet.GetComponent<MachineGunBullet>();
             if (mg != null)
             {
                 mg.direction = direction.normalized;
-
-                // หมุนหัวกระสุนให้ชี้ไปทิศทางจริง
                 float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - 90f;
                 bullet.transform.rotation = Quaternion.Euler(0, 0, angle);
             }
@@ -159,8 +197,6 @@ public class PlayerShooting : MonoBehaviour
 
         CreateMuzzleFlash(direction, shootPoint);
     }
-
-
 
     void ShootShotgun(Transform shootPoint, Vector2 direction, float speed)
     {
@@ -190,6 +226,14 @@ public class PlayerShooting : MonoBehaviour
 
         Destroy(currentMuzzleFlash, 0.1f);
     }
+
+    // 🎵 ฟังก์ชันเล่นเสียงปืน
+    void PlayGunSound(AudioClip clip)
+    {
+        if (clip == null || audioSource == null) return;
+        audioSource.PlayOneShot(clip);
+    }
+
     public void ResetToNormalGun()
     {
         usingMachineGun = usingShotgun = usingHoming = false;
@@ -203,7 +247,6 @@ public class PlayerShooting : MonoBehaviour
         usingShotgun = false;
         machineGunAmmo = ammoAmount;
         currentBulletPrefab = newBulletPrefab;
-
         Debug.Log($"💥 ได้ปืนกล! กระสุน {ammoAmount} นัด");
     }
 
@@ -213,9 +256,9 @@ public class PlayerShooting : MonoBehaviour
         usingMachineGun = false;
         shotgunAmmo = ammoAmount;
         currentBulletPrefab = newBulletPrefab;
-
         Debug.Log($"💥 ได้ปืนลูกซอง! กระสุน {ammoAmount} นัด");
     }
+
     public void PickupHomingGun(int ammoAmount, GameObject newBulletPrefab)
     {
         usingHoming = true;
@@ -226,14 +269,10 @@ public class PlayerShooting : MonoBehaviour
         Debug.Log($"🎯 ได้ปืนติดตาม! กระสุน {ammoAmount} นัด");
     }
 
-
-    // วางไว้ท้าย class PlayerShooting
     public bool IsUsingMachineGun => usingMachineGun;
     public bool IsUsingShotgun => usingShotgun;
     public bool IsUsingHoming => usingHoming;
-
     public int MachineGunAmmo => machineGunAmmo;
     public int ShotgunAmmo => shotgunAmmo;
     public int HomingAmmo => homingAmmo;
-
 }

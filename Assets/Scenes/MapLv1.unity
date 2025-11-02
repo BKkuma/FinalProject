@@ -1565,7 +1565,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &204537465
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1583,8 +1583,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -762.5, y: 459.4784}
-  m_SizeDelta: {x: 291, y: 141.0432}
+  m_AnchoredPosition: {x: -843.91345, y: 459.4784}
+  m_SizeDelta: {x: 128.1732, y: 141.0432}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &204537466
 MonoBehaviour:
@@ -1754,7 +1754,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 207591615}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -16.85, y: 5, z: 0}
+  m_LocalPosition: {x: -15, y: 5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1866,11 +1866,15 @@ MonoBehaviour:
   shotgunBulletPrefab: {fileID: 959396421581127210, guid: b66d7cdff97b903408715a5b1347ef6e, type: 3}
   homingBulletPrefab: {fileID: 8609818429516020652, guid: a03bf1458c8fd9c4b8aa4905e68e2bea, type: 3}
   normalFireRate: 0.25
-  machineGunFireRate: 0.05
+  machineGunFireRate: 0.1
   shotgunFireRate: 0.5
   machineGunAmmo: 50
   shotgunAmmo: 10
   homingAmmo: 15
+  normalGunSound: {fileID: 8300000, guid: fd3895a2d40b7c0438eb055779a0f92a, type: 3}
+  machineGunSound: {fileID: 8300000, guid: 48283adefda01514e851c40517a63d59, type: 3}
+  shotgunSound: {fileID: 8300000, guid: 8af9b84117aab4a48ba134e04951246a, type: 3}
+  homingGunSound: {fileID: 8300000, guid: 40e71b0f7bd610849b40f150553f4702, type: 3}
 --- !u!95 &207591625
 Animator:
   serializedVersion: 5
@@ -2482,7 +2486,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &330025334
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2500,8 +2504,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -762.5, y: 459.4784}
-  m_SizeDelta: {x: 291, y: 141.0432}
+  m_AnchoredPosition: {x: -544.92, y: 459.4784}
+  m_SizeDelta: {x: 128.1732, y: 141.0432}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &330025335
 MonoBehaviour:
@@ -6583,12 +6587,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerHealth: {fileID: 207591623}
   heartIcons:
-  - {fileID: 2109054402}
-  heartFull3: {fileID: -1321519298, guid: c258ff76904bea149a4171816e6f0025, type: 3}
-  heartFull2: {fileID: 1354511773, guid: c258ff76904bea149a4171816e6f0025, type: 3}
-  heartFull1: {fileID: -1572175393, guid: c258ff76904bea149a4171816e6f0025, type: 3}
-  heartEmpty: {fileID: -788440086, guid: c258ff76904bea149a4171816e6f0025, type: 3}
-  heartBroken: {fileID: -764135603, guid: c258ff76904bea149a4171816e6f0025, type: 3}
+  - {fileID: 204537466}
+  - {fileID: 2117292952}
+  - {fileID: 330025335}
+  heartFull: {fileID: 1253571308, guid: f2d5200717d43a1429e4eb7bed5b86e2, type: 3}
+  heartBroken: {fileID: 2083036601, guid: f2d5200717d43a1429e4eb7bed5b86e2, type: 3}
 --- !u!1 &909256539
 GameObject:
   m_ObjectHideFlags: 0
@@ -14601,7 +14604,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &2109054401
 RectTransform:
   m_ObjectHideFlags: 0
@@ -14677,7 +14680,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &2117292951
 RectTransform:
   m_ObjectHideFlags: 0
@@ -14695,8 +14698,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -762.5, y: 459.4784}
-  m_SizeDelta: {x: 291, y: 141.0432}
+  m_AnchoredPosition: {x: -697.8, y: 459.4784}
+  m_SizeDelta: {x: 128.1732, y: 141.0432}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2117292952
 MonoBehaviour:
