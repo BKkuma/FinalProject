@@ -53,6 +53,11 @@ public class SceneTransitionTrigger : MonoBehaviour
         if (targetPosition != null)
         {
             player.transform.position = targetPosition.position;
+            CameraFollowLockY camFollow = Camera.main.GetComponent<CameraFollowLockY>();
+            if (camFollow != null)
+            {
+                camFollow.TeleportToTarget(player.transform.position);
+            }
         }
 
         // รออีกครึ่งเวลาเพื่อ fade out

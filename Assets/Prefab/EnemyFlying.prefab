@@ -113,7 +113,7 @@ MonoBehaviour:
   hitColor: {r: 1, g: 0, b: 0, a: 1}
   hitFlashDuration: 0.2
   audioSource: {fileID: 0}
-  shootSFX: {fileID: 8300000, guid: 8581f806dddef8046b4942de05b897be, type: 3}
+  shootSFX: {fileID: 8300000, guid: 947719fd38845824ba3638af9d8e4e54, type: 3}
   hitSFX: {fileID: 0}
   deathSFX: {fileID: 0}
 --- !u!50 &111367345882031453

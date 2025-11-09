@@ -159,8 +159,8 @@ public class HelicopterBoss : MonoBehaviour
 
         if (currentHP <= 0)
         {
-            if (UIManager.instance != null)
-                UIManager.instance.ShowWinUI();
+            //if (UIManager.instance != null)
+               // UIManager.instance.ShowWinUI();
 
             onBossDefeated?.Invoke();
             Destroy(gameObject);

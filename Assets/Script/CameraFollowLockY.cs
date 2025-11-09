@@ -20,6 +20,8 @@ public class CameraFollowLockY : MonoBehaviour
     private float lockLeft;
     private bool inBossFight = false;
 
+    [Header("Camera X Clamp Limit")]
+    public float cameraRightLimit = Mathf.Infinity;
     void Start()
     {
         if (target != null)
@@ -81,4 +83,23 @@ public class CameraFollowLockY : MonoBehaviour
         float halfWidth = cam.orthographicSize * cam.aspect;
         return transform.position.x + halfWidth;
     }
+    public void TeleportToTarget(Vector3 newTargetPos)
+    {
+        Vector3 desiredPosition = newTargetPos + offset;
+
+        float clampedY = Mathf.Clamp(desiredPosition.y, minY, maxY);
+
+        if (inBossFight)
+        {
+            float clampX = Mathf.Clamp(desiredPosition.x, bossMinLimit.x, bossMaxLimit.x);
+            float clampY = Mathf.Clamp(desiredPosition.y, bossMinLimit.y, bossMaxLimit.y);
+            transform.position = new Vector3(clampX, clampY, transform.position.z);
+        }
+        else
+        {
+            if (desiredPosition.x > maxX) maxX = desiredPosition.x;
+            transform.position = new Vector3(Mathf.Max(maxX, lockLeft), clampedY, transform.position.z);
+        }
+    }
+
 }
