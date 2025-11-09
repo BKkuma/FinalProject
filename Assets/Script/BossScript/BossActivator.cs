@@ -7,6 +7,9 @@ public class BossActivator : MonoBehaviour
     public Camera bossCamera;
     public GameObject player;
 
+    [Header("Boss Boundaries")]
+    public GameObject bossBounds; // ✅ เพิ่มช่องอ้างอิงกำแพง
+
     private bool triggered = false;
 
     void OnTriggerEnter2D(Collider2D other)
@@ -31,6 +34,10 @@ public class BossActivator : MonoBehaviour
                 bossCamera.enabled = true;
             }
 
+            // ✅ เปิดกำแพงบอส
+            if (bossBounds != null)
+                bossBounds.SetActive(true);
+
             // ✅ เปลี่ยนเพลงเป็นเพลงบอส
             if (MusicManager.Instance != null)
                 MusicManager.Instance.PlayBossMusic();
@@ -51,6 +58,10 @@ public class BossActivator : MonoBehaviour
                     // 🔁 เปิด PlayerBounds กลับมา
                     if (pb != null)
                         pb.enabled = true;
+
+                    // 🔁 ปิดกำแพงบอส
+                    if (bossBounds != null)
+                        bossBounds.SetActive(false);
 
                     // 🔊 กลับไปเพลงปกติ
                     if (MusicManager.Instance != null)
