@@ -17,6 +17,11 @@ public class HelicopterBoss : MonoBehaviour
     public Transform missilePoint;
     public float missileFireRate = 1.2f;
 
+    [Header("Audio")]
+    public AudioSource audioSource;
+    public AudioClip machineGunSound;
+    public AudioClip missileSound;
+
     [Header("Attack Cycle")]
     public float phaseDuration = 10f;
     private bool inTopPhase = true;
@@ -35,7 +40,7 @@ public class HelicopterBoss : MonoBehaviour
     private Coroutine hitFlashRoutine;
     private Color originalColor;
 
-    public System.Action onBossDefeated; // Event ให้เรียกตอน Boss ตาย
+    public System.Action onBossDefeated;
 
     void Start()
     {
@@ -45,13 +50,16 @@ public class HelicopterBoss : MonoBehaviour
             spriteRenderer = GetComponent<SpriteRenderer>();
 
         if (spriteRenderer != null)
-            originalColor = spriteRenderer.color; // เก็บสีเดิมตั้งแต่เริ่มเกม
+            originalColor = spriteRenderer.color;
 
         if (topPoint != null)
             transform.position = topPoint.position;
 
         if (missilePoint != null && missilePrefab != null)
             attackRoutine = StartCoroutine(MissileAttack());
+
+        if (audioSource == null)
+            audioSource = GetComponent<AudioSource>(); // เผื่อยังไม่ได้ใส่ใน Inspector
     }
 
     void Update()
@@ -100,8 +108,10 @@ public class HelicopterBoss : MonoBehaviour
             if (player != null && missilePoint != null && missilePrefab != null)
             {
                 Vector3 playerPos = player.transform.position;
-                GameObject missile = Instantiate(missilePrefab, missilePoint.position, Quaternion.identity);
-                missile.GetComponent<MissileBoss>()?.SetDirection(playerPos);
+                Instantiate(missilePrefab, missilePoint.position, Quaternion.identity)
+                    .GetComponent<MissileBoss>()?.SetDirection(playerPos);
+
+                PlaySound(missileSound, 0.8f);
             }
             yield return new WaitForSeconds(missileFireRate);
         }
@@ -112,8 +122,15 @@ public class HelicopterBoss : MonoBehaviour
         while (!inTopPhase)
         {
             ShootBulletLeft();
+            PlaySound(machineGunSound, 0.7f);
             yield return new WaitForSeconds(bulletFireRate);
         }
+    }
+
+    void PlaySound(AudioClip clip, float volume = 1f)
+    {
+        if (audioSource != null && clip != null)
+            audioSource.PlayOneShot(clip, volume);
     }
 
     void ShootBulletLeft()
@@ -135,7 +152,6 @@ public class HelicopterBoss : MonoBehaviour
     {
         currentHP -= dmg;
 
-        // ถ้า Coroutine เก่าอยู่ ให้หยุดก่อน
         if (hitFlashRoutine != null)
             StopCoroutine(hitFlashRoutine);
 
@@ -144,12 +160,12 @@ public class HelicopterBoss : MonoBehaviour
         if (currentHP <= 0)
         {
             if (UIManager.instance != null)
-                UIManager.instance.ShowWinUI(); // <<--- เรียกจบเกมตรงนี้
+                UIManager.instance.ShowWinUI();
 
+            onBossDefeated?.Invoke();
             Destroy(gameObject);
         }
     }
-
 
     IEnumerator HitFlash()
     {
@@ -157,7 +173,7 @@ public class HelicopterBoss : MonoBehaviour
         {
             spriteRenderer.color = hitColor;
             yield return new WaitForSeconds(hitFlashDuration);
-            spriteRenderer.color = originalColor; // กลับสีเดิม
+            spriteRenderer.color = originalColor;
             hitFlashRoutine = null;
         }
     }
