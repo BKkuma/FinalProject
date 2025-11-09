@@ -1,22 +1,26 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using System.Collections;
 
 public class Turret : MonoBehaviour
 {
     [Header("References")]
-    public Transform gun;              // µÑÇ»×¹·Õè¨ÐËÁØ¹
-    public Transform firePoint;        // ¨Ø´ÂÔ§¡ÃÐÊØ¹
-    public GameObject bulletPrefab;    // ¡ÃÐÊØ¹·Õè¨ÐÂÔ§
+    public Transform gun;
+    public Transform firePoint;
+    public GameObject bulletPrefab;
     private Transform player;
 
     [Header("Combat")]
-    public float attackRange = 8f;     // ÃÐÂÐ·ÕèàÃÔèÁâ¨ÁµÕ
-    public float fireDelay = 3f;       // ÂÔ§·Ø¡¡ÕèÇÔ
+    public float attackRange = 8f;
+    public float fireDelay = 3f;
     public float bulletSpeed = 5f;
 
     [Header("Stats")]
     public int maxHP = 10;
     private int currentHP;
+
+    [Header("Sound Effects")]
+    public AudioClip shootSound;  // ðŸ”Š à¹ƒà¸ªà¹ˆà¹€à¸ªà¸µà¸¢à¸‡à¸¢à¸´à¸‡à¸‚à¸­à¸‡à¸›à¹‰à¸­à¸¡
+    private AudioSource audioSource;
 
     private bool playerInRange = false;
     private bool isAttacking = false;
@@ -26,6 +30,11 @@ public class Turret : MonoBehaviour
         currentHP = maxHP;
         GameObject p = GameObject.FindWithTag("Player");
         if (p != null) player = p.transform;
+
+        // âœ… à¸–à¹‰à¸²à¹„à¸¡à¹ˆà¸¡à¸µ AudioSource à¹ƒà¸™ object à¸™à¸µà¹‰ à¹ƒà¸«à¹‰à¹€à¸žà¸´à¹ˆà¸¡à¹ƒà¸«à¹‰à¸­à¸±à¸•à¹‚à¸™à¸¡à¸±à¸•à¸´
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+            audioSource = gameObject.AddComponent<AudioSource>();
     }
 
     void Update()
@@ -35,7 +44,7 @@ public class Turret : MonoBehaviour
         float distance = Vector2.Distance(transform.position, player.position);
         playerInRange = distance <= attackRange;
 
-        // ËÁØ¹»×¹µÒÁ¼ÙéàÅè¹
+        // à¸«à¸¡à¸¸à¸™à¸›à¸·à¸™à¸•à¸²à¸¡à¸œà¸¹à¹‰à¹€à¸¥à¹ˆà¸™
         if (playerInRange && gun != null)
         {
             Vector2 direction = (player.position - gun.position).normalized;
@@ -43,7 +52,7 @@ public class Turret : MonoBehaviour
             gun.rotation = Quaternion.Euler(0, 0, angle - -90f);
         }
 
-        // àÃÔèÁÂÔ§¶éÒÂÑ§äÁè¡ÓÅÑ§ÂÔ§
+        // à¹€à¸£à¸´à¹ˆà¸¡à¸¢à¸´à¸‡à¸–à¹‰à¸²à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸à¸³à¸¥à¸±à¸‡à¸¢à¸´à¸‡
         if (playerInRange && !isAttacking)
         {
             StartCoroutine(ShootRoutine());
@@ -54,7 +63,7 @@ public class Turret : MonoBehaviour
     {
         isAttacking = true;
 
-        yield return new WaitForSeconds(fireDelay); // ÃÍ¡èÍ¹ÂÔ§¤ÃÑé§áÃ¡
+        yield return new WaitForSeconds(fireDelay);
 
         while (playerInRange)
         {
@@ -75,6 +84,10 @@ public class Turret : MonoBehaviour
             Rigidbody2D rb = bullet.GetComponent<Rigidbody2D>();
             if (rb != null)
                 rb.velocity = direction * bulletSpeed;
+
+            // ðŸ”Š à¹€à¸¥à¹ˆà¸™à¹€à¸ªà¸µà¸¢à¸‡à¸•à¸­à¸™à¸¢à¸´à¸‡
+            if (shootSound != null && audioSource != null)
+                audioSource.PlayOneShot(shootSound);
         }
     }
 
@@ -83,7 +96,7 @@ public class Turret : MonoBehaviour
         currentHP -= dmg;
         if (currentHP <= 0)
         {
-            Destroy(gameObject); // ÃÐàºÔ´»éÍÁ
+            Destroy(gameObject);
         }
     }
 
@@ -100,7 +113,6 @@ public class Turret : MonoBehaviour
         }
     }
 
-    // ÇÒ´ Gizmo áÊ´§ÃÐÂÐ¡ÒÃÁÍ§àËç¹¢Í§»éÍÁ
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;

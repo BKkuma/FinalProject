@@ -34,6 +34,7 @@ public class PlayerShooting : MonoBehaviour
     private PlayerMovement playerMove;
     private Animator animator;
 
+
     [Header("Ammo Settings")]
     public int machineGunAmmo = 50;
     public int shotgunAmmo = 10;
@@ -200,17 +201,24 @@ public class PlayerShooting : MonoBehaviour
 
     void ShootShotgun(Transform shootPoint, Vector2 direction, float speed)
     {
+        float shotgunSpeed = 20f; // ความเร็วกระสุนลูกซอง
+        float lifetime = 0.2f;    // อายุของกระสุนแต่ละลูก (สั้นลง)
+
         for (int i = -1; i <= 1; i++)
         {
-            float angle = 7f * i;
+            float angle = 7f * i; // กระจายกระสุนเล็กน้อย
             Vector2 spreadDir = Quaternion.Euler(0, 0, angle) * direction;
             GameObject bullet = Instantiate(shotgunBulletPrefab, shootPoint.position, Quaternion.identity);
+
             Rigidbody2D rb = bullet.GetComponent<Rigidbody2D>();
-            if (rb != null) rb.velocity = spreadDir * speed;
+            if (rb != null) rb.velocity = spreadDir * shotgunSpeed;
+
+            Destroy(bullet, lifetime); // 💥 กระสุนอยู่ไม่นาน
         }
 
         CreateMuzzleFlash(direction, shootPoint);
     }
+
 
     void CreateMuzzleFlash(Vector2 direction, Transform shootPoint)
     {

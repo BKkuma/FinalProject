@@ -6,7 +6,7 @@ public class EnemyAI : MonoBehaviour
     [Header("Movement & Detection")]
     public float moveSpeed = 3f;
     [Tooltip("ระยะที่ศัตรูสามารถตรวจเจอผู้เล่นได้")]
-    public float detectionRange = 6f; // 🔹 ลดจาก 10f → 6f
+    public float detectionRange = 6f;
     public float stopDistance = 3f;
 
     [Header("Combat")]
@@ -15,6 +15,10 @@ public class EnemyAI : MonoBehaviour
     public GameObject bulletPrefab;
     public Transform firePoint;
     public GameObject muzzleFlashPrefab;
+
+    [Header("Audio")]
+    public AudioClip shootSound; // เสียงยิง
+    private AudioSource audioSource;
 
     [Header("Stats")]
     public int maxHP = 3;
@@ -41,15 +45,18 @@ public class EnemyAI : MonoBehaviour
             originalColor = spriteRenderer.color;
 
         animator = GetComponent<Animator>();
+
+        // ✅ เพิ่ม AudioSource อัตโนมัติถ้ายังไม่มี
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+            audioSource = gameObject.AddComponent<AudioSource>();
     }
 
     void Update()
     {
         FindClosestPlayer();
         UpdateState();
-
-        // 🔹 เรียกเพื่อให้เห็นเส้นสายตาใน Scene View
-        CanSeePlayer();
+        CanSeePlayer(); // debug line
     }
 
     void FindClosestPlayer()
@@ -84,7 +91,6 @@ public class EnemyAI : MonoBehaviour
 
         if (distance < detectionRange)
         {
-            // เดินเข้า player ถ้ายังไกลกว่า stopDistance
             if (distance > stopDistance)
             {
                 Vector2 direction = (targetPlayer.position - transform.position).normalized;
@@ -97,11 +103,9 @@ public class EnemyAI : MonoBehaviour
                 animator.SetBool("isWalking", false);
             }
 
-            // หัน sprite ตามทิศทาง player
             Vector2 lookDir = (targetPlayer.position - transform.position).normalized;
             spriteRenderer.flipX = (lookDir.x < 0);
 
-            // ปรับตำแหน่ง firePoint ตามการหัน
             if (firePoint != null)
             {
                 Vector3 localPos = firePoint.localPosition;
@@ -109,7 +113,6 @@ public class EnemyAI : MonoBehaviour
                 firePoint.localPosition = localPos;
             }
 
-            // 🔹 ยิงเฉพาะเมื่อ “เห็นจริง” ผ่านเส้นตรง
             if (CanSeePlayer())
             {
                 if (!hasStartedShooting)
@@ -144,7 +147,6 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
-    // ✅ ใช้เส้น Raycast ตรวจสายตา + Debug แสดงเส้น
     bool CanSeePlayer()
     {
         if (targetPlayer == null) return false;
@@ -162,13 +164,13 @@ public class EnemyAI : MonoBehaviour
             {
                 if (hit.collider.CompareTag("Player"))
                 {
-                    debugColor = Color.red; // 🔴 เห็นผู้เล่น
+                    debugColor = Color.red;
                     Debug.DrawLine(origin, hit.point, debugColor);
                     return true;
                 }
                 else
                 {
-                    debugColor = Color.yellow; // 🟡 มีสิ่งกีดขวาง
+                    debugColor = Color.yellow;
                     Debug.DrawLine(origin, hit.point, debugColor);
                     return false;
                 }
@@ -177,18 +179,6 @@ public class EnemyAI : MonoBehaviour
 
         Debug.DrawLine(origin, origin + direction * detectionRange, debugColor);
         return false;
-    }
-
-    // ✅ วาด Gizmo แสดงระยะมองเห็น
-    void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.cyan;
-        Gizmos.DrawWireSphere(transform.position, detectionRange); // วงระยะตรวจจับ
-
-        // วาดเส้นสายตาแนวนอน (ซ้าย-ขวา)
-        Gizmos.color = Color.green;
-        Gizmos.DrawLine(transform.position, transform.position + Vector3.right * detectionRange);
-        Gizmos.DrawLine(transform.position, transform.position - Vector3.right * detectionRange);
     }
 
     void Shoot()
@@ -208,6 +198,10 @@ public class EnemyAI : MonoBehaviour
                 GameObject flash = Instantiate(muzzleFlashPrefab, firePoint.position, firePoint.rotation);
                 Destroy(flash, 0.1f);
             }
+
+            // 🔊 เล่นเสียงยิง
+            if (shootSound != null)
+                audioSource.PlayOneShot(shootSound);
         }
     }
 

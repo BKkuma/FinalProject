@@ -12,7 +12,8 @@ GameObject:
   - component: {fileID: 7367836598548199015}
   - component: {fileID: 9170048417949685942}
   - component: {fileID: 3167638272916464850}
-  - component: {fileID: -5474167407235891378}
+  - component: {fileID: 5822894186054735257}
+  - component: {fileID: 8315089913605687635}
   m_Layer: 6
   m_Name: ShotgunBullet
   m_TagString: PlayerBullet
@@ -149,7 +150,20 @@ CircleCollider2D:
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 0.5
---- !u!114 &-5474167407235891378
+--- !u!114 &5822894186054735257
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 959396421581127210}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a6ef32d7a5d715740a5d32a5b285f7a8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  damage: 1
+--- !u!114 &8315089913605687635
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -161,7 +175,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 662b1d2d32a4afd4c99a75c02dec4c27, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 2
-  speed: 10
-  direction: {x: 1, y: 0}
-  lifetime: 0.5
+  damage: 1

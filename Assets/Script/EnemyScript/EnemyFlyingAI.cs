@@ -24,6 +24,12 @@ public class EnemyFlyingAI : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private Color originalColor;
 
+    [Header("Sound Effects")]
+    public AudioSource audioSource;
+    public AudioClip shootSFX;
+    public AudioClip hitSFX;
+    public AudioClip deathSFX;
+
     private Transform targetPlayer;
     private float fireCooldown;
     private Rigidbody2D rb;
@@ -38,6 +44,13 @@ public class EnemyFlyingAI : MonoBehaviour
         spriteRenderer = GetComponent<SpriteRenderer>();
         if (spriteRenderer != null)
             originalColor = spriteRenderer.color;
+
+        // ถ้าไม่มี AudioSource ใน Inspector จะเพิ่มให้อัตโนมัติ
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+            audioSource.playOnAwake = false;
+        }
     }
 
     void Update()
@@ -52,18 +65,15 @@ public class EnemyFlyingAI : MonoBehaviour
         Vector2 direction = (targetPlayer.position - transform.position).normalized;
         if (float.IsNaN(direction.x) || float.IsNaN(direction.y)) return;
 
-        // 🧭 การเคลื่อนที่
+        // 🧭 เคลื่อนที่เข้าใกล้หรือบินวน
         if (distance > orbitDistance)
         {
-            // ยังไกลเกิน → บินเข้าใกล้
             rb.MovePosition(rb.position + direction * moveSpeed * Time.deltaTime);
         }
         else
         {
-            // อยู่ในระยะ → บินวนเล็กน้อย ไม่หนีออกไป
-            float hoverRadius = 1.5f;         // ขนาดวงที่บินวน
-            float hoverSpeed = 2f;            // ความเร็วในการบินวน
-
+            float hoverRadius = 1.5f;
+            float hoverSpeed = 2f;
             Vector2 hoverOffset = new Vector2(
                 Mathf.Sin(Time.time * hoverSpeed),
                 Mathf.Cos(Time.time * hoverSpeed * 0.5f)
@@ -97,9 +107,6 @@ public class EnemyFlyingAI : MonoBehaviour
             spriteRenderer.flipX = direction.x >= 0;
     }
 
-
-
-
     IEnumerator StartShootingAfterDelay(float delay)
     {
         yield return new WaitForSeconds(delay);
@@ -123,11 +130,7 @@ public class EnemyFlyingAI : MonoBehaviour
         }
 
         targetPlayer = closestPlayer;
-
-        if (targetPlayer != null)
-            Debug.Log($"{name} targeting {targetPlayer.name}");
     }
-
 
     void Shoot()
     {
@@ -139,6 +142,10 @@ public class EnemyFlyingAI : MonoBehaviour
             {
                 bulletScript.ShootTowards(targetPlayer.position);
             }
+
+            // 🔊 เล่นเสียงยิง
+            if (shootSFX != null && audioSource != null)
+                audioSource.PlayOneShot(shootSFX);
         }
     }
 
@@ -146,9 +153,18 @@ public class EnemyFlyingAI : MonoBehaviour
     {
         currentHP -= damage;
         StartCoroutine(HitFlash());
+
+        // 🔊 เสียงโดนยิง
+        if (hitSFX != null && audioSource != null)
+            audioSource.PlayOneShot(hitSFX);
+
         if (currentHP <= 0)
         {
-            Destroy(gameObject);
+            // 🔊 เสียงตอนตาย
+            if (deathSFX != null && audioSource != null)
+                audioSource.PlayOneShot(deathSFX);
+
+            Destroy(gameObject, 0.1f);
         }
     }
 

@@ -1,4 +1,4 @@
-using UnityEngine;
+Ôªøusing UnityEngine;
 
 public class BossTrigger : MonoBehaviour
 {
@@ -7,9 +7,9 @@ public class BossTrigger : MonoBehaviour
     public Transform bossSpawnPoint;
 
     [Header("Camera Settings")]
-    public CameraBossLock cameraLock;    // ÕÈ“ßÕ‘ß°≈ÈÕß
-    public Vector2 cameraMinLimit;       // ¢Õ∫´È“¬-≈Ë“ß
-    public Vector2 cameraMaxLimit;       // ¢Õ∫¢«“-∫π
+    public CameraBossLock cameraLock;    // ‡∏≠‡πâ‡∏≤‡∏á‡∏≠‡∏¥‡∏á‡∏Å‡∏•‡πâ‡∏≠‡∏á
+    public Vector2 cameraMinLimit;       // ‡∏Ç‡∏≠‡∏ö‡∏ã‡πâ‡∏≤‡∏¢-‡∏•‡πà‡∏≤‡∏á
+    public Vector2 cameraMaxLimit;       // ‡∏Ç‡∏≠‡∏ö‡∏Ç‡∏ß‡∏≤-‡∏ö‡∏ô
 
     private bool triggered = false;
 
@@ -19,16 +19,16 @@ public class BossTrigger : MonoBehaviour
         {
             triggered = true;
 
-            // Spawn ∫Õ 
+            // Spawn ‡∏ö‡∏≠‡∏™
             Instantiate(bossPrefab, bossSpawnPoint.position, Quaternion.identity);
 
-            // Lock °≈ÈÕß
+            // Lock ‡∏Å‡∏•‡πâ‡∏≠‡∏á
             if (cameraLock != null)
             {
                 cameraLock.StartBossFight(cameraMinLimit, cameraMaxLimit);
             }
 
-            // ª‘¥ Trigger
+            // ‡∏õ‡∏¥‡∏î Trigger
             gameObject.SetActive(false);
         }
     }

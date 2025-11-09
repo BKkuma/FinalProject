@@ -15,42 +15,50 @@ public class BossActivator : MonoBehaviour
         {
             triggered = true;
 
-            // เปิด Boss
+            // ✅ เปิด Boss
             if (boss != null)
                 boss.SetActive(true);
 
-            // ปิด PlayerBounds ชั่วคราว
+            // ✅ ปิด PlayerBounds ชั่วคราว
             PlayerBounds pb = player.GetComponent<PlayerBounds>();
             if (pb != null)
                 pb.enabled = false;
 
-            // สลับกล้องไป BossCamera
+            // ✅ สลับกล้องไป BossCamera
             if (mainCamera != null && bossCamera != null)
             {
                 mainCamera.enabled = false;
                 bossCamera.enabled = true;
             }
 
-            // สมัคร Event Boss ตาย
+            // ✅ เปลี่ยนเพลงเป็นเพลงบอส
+            if (MusicManager.Instance != null)
+                MusicManager.Instance.PlayBossMusic();
+
+            // ✅ สมัคร Event ตอนบอสตาย
             HelicopterBoss heli = boss.GetComponent<HelicopterBoss>();
             if (heli != null)
             {
                 heli.onBossDefeated += () =>
                 {
-                    // กลับ MainCamera
+                    // 🔁 กลับ MainCamera
                     if (mainCamera != null && bossCamera != null)
                     {
                         mainCamera.enabled = true;
                         bossCamera.enabled = false;
                     }
 
-                    // เปิด PlayerBounds กลับมา
+                    // 🔁 เปิด PlayerBounds กลับมา
                     if (pb != null)
                         pb.enabled = true;
+
+                    // 🔊 กลับไปเพลงปกติ
+                    if (MusicManager.Instance != null)
+                        MusicManager.Instance.PlayNormalMusic();
                 };
             }
 
-            // ปิด Trigger
+            // ✅ ปิด Trigger เพื่อไม่ให้เรียกซ้ำ
             gameObject.SetActive(false);
         }
     }
