@@ -174,8 +174,8 @@ MonoBehaviour:
   missilePoint: {fileID: 7171393023654525575}
   missileFireRate: 1.2
   audioSource: {fileID: 0}
-  machineGunSound: {fileID: 0}
-  missileSound: {fileID: 0}
+  machineGunSound: {fileID: 8300000, guid: 92d35fe1c59bbd14eaee9e3d3b54cea7, type: 3}
+  missileSound: {fileID: 8300000, guid: 929fd214252d7034d93c9463bf63e091, type: 3}
   phaseDuration: 10
   maxHP: 20
   spriteRenderer: {fileID: 0}
@@ -265,7 +265,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
   m_PlayOnAwake: 1
-  m_Volume: 1
+  m_Volume: 0.2
   m_Pitch: 1
   Loop: 0
   Mute: 0

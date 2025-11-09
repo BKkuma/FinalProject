@@ -56,8 +56,14 @@ public class PlayerHealth : MonoBehaviour
             // หมดชีวิต → แสดง GameOver
             if (gameOverUI != null)
                 gameOverUI.SetActive(true);
+
+            // 🔊 เปลี่ยนเพลงกลับเป็นปกติ
+            if (MusicManager.Instance != null)
+                MusicManager.Instance.PlayNormalMusic();
         }
     }
+
+
 
     void Respawn()
     {

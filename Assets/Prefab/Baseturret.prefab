@@ -139,7 +139,7 @@ MonoBehaviour:
   fireDelay: 2
   bulletSpeed: 10
   maxHP: 5
-  shootSound: {fileID: 8300000, guid: 30114844b380b88418785402b1e582c0, type: 3}
+  shootSound: {fileID: 8300000, guid: 947719fd38845824ba3638af9d8e4e54, type: 3}
 --- !u!61 &3220463565348226750
 BoxCollider2D:
   m_ObjectHideFlags: 0
