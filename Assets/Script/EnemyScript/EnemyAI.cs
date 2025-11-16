@@ -5,7 +5,6 @@ public class EnemyAI : MonoBehaviour
 {
     [Header("Movement & Detection")]
     public float moveSpeed = 3f;
-    [Tooltip("ระยะที่ศัตรูสามารถตรวจเจอผู้เล่นได้")]
     public float detectionRange = 6f;
     public float stopDistance = 3f;
 
@@ -17,7 +16,7 @@ public class EnemyAI : MonoBehaviour
     public GameObject muzzleFlashPrefab;
 
     [Header("Audio")]
-    public AudioClip shootSound; // เสียงยิง
+    public AudioClip shootSound;
     private AudioSource audioSource;
 
     [Header("Stats")]
@@ -30,23 +29,25 @@ public class EnemyAI : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private Color originalColor;
 
+    [Header("Loot Drop")]
+    public GameObject[] possibleDrops;
+    [Range(0f, 1f)]
+    public float dropChance = 0.15f; // 15% โอกาส drop → ยากมาก
+
     private Transform targetPlayer;
     private float fireCooldown;
     private bool hasStartedShooting = false;
     private float detectTimer = 0f;
-
     private Animator animator;
 
     void Awake()
     {
         currentHP = maxHP;
         spriteRenderer = GetComponent<SpriteRenderer>();
-        if (spriteRenderer != null)
-            originalColor = spriteRenderer.color;
+        if (spriteRenderer != null) originalColor = spriteRenderer.color;
 
         animator = GetComponent<Animator>();
 
-        // ✅ เพิ่ม AudioSource อัตโนมัติถ้ายังไม่มี
         audioSource = GetComponent<AudioSource>();
         if (audioSource == null)
             audioSource = gameObject.AddComponent<AudioSource>();
@@ -56,7 +57,6 @@ public class EnemyAI : MonoBehaviour
     {
         FindClosestPlayer();
         UpdateState();
-        CanSeePlayer(); // debug line
     }
 
     void FindClosestPlayer()
@@ -155,29 +155,17 @@ public class EnemyAI : MonoBehaviour
         Vector2 direction = (targetPlayer.position - transform.position).normalized;
         float distanceToPlayer = Vector2.Distance(transform.position, targetPlayer.position);
 
-        Color debugColor = Color.gray;
-
         if (distanceToPlayer <= detectionRange && Mathf.Abs(targetPlayer.position.y - transform.position.y) <= 1.5f)
         {
             RaycastHit2D hit = Physics2D.Raycast(origin, direction, detectionRange, LayerMask.GetMask("Default", "Player"));
-            if (hit.collider != null)
+            if (hit.collider != null && hit.collider.CompareTag("Player"))
             {
-                if (hit.collider.CompareTag("Player"))
-                {
-                    debugColor = Color.red;
-                    Debug.DrawLine(origin, hit.point, debugColor);
-                    return true;
-                }
-                else
-                {
-                    debugColor = Color.yellow;
-                    Debug.DrawLine(origin, hit.point, debugColor);
-                    return false;
-                }
+                Debug.DrawLine(origin, hit.point, Color.red);
+                return true;
             }
         }
 
-        Debug.DrawLine(origin, origin + direction * detectionRange, debugColor);
+        Debug.DrawLine(origin, origin + direction * detectionRange, Color.gray);
         return false;
     }
 
@@ -194,12 +182,8 @@ public class EnemyAI : MonoBehaviour
             }
 
             if (muzzleFlashPrefab != null)
-            {
-                GameObject flash = Instantiate(muzzleFlashPrefab, firePoint.position, firePoint.rotation);
-                Destroy(flash, 0.1f);
-            }
+                Destroy(Instantiate(muzzleFlashPrefab, firePoint.position, firePoint.rotation), 0.1f);
 
-            // 🔊 เล่นเสียงยิง
             if (shootSound != null)
                 audioSource.PlayOneShot(shootSound);
         }
@@ -209,9 +193,11 @@ public class EnemyAI : MonoBehaviour
     {
         currentHP -= damage;
         StartCoroutine(HitFlash());
+
         if (currentHP <= 0)
         {
-            Destroy(gameObject);
+            DropLoot();
+            Destroy(gameObject, 0.1f);
         }
     }
 
@@ -222,6 +208,23 @@ public class EnemyAI : MonoBehaviour
             spriteRenderer.color = hitColor;
             yield return new WaitForSeconds(hitFlashDuration);
             spriteRenderer.color = originalColor;
+        }
+    }
+
+    void DropLoot()
+    {
+        if (possibleDrops.Length == 0) return;
+
+        if (Random.value <= dropChance)
+        {
+            int index = Random.Range(0, possibleDrops.Length);
+            GameObject drop = Instantiate(possibleDrops[index], transform.position, Quaternion.identity);
+
+            Rigidbody2D rb = drop.GetComponent<Rigidbody2D>();
+            if (rb != null)
+            {
+                rb.velocity = new Vector2(Random.Range(-1f, 1f), Random.Range(2f, 3f));
+            }
         }
     }
 }

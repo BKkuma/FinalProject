@@ -7,7 +7,6 @@ public class EnemyFlyingAI : MonoBehaviour
     public float moveSpeed = 3f;
     public float detectionRange = 12f;
     public float orbitDistance = 4f;
-    public float orbitSpeed = 50f;
 
     [Header("Combat")]
     public float fireRate = 1f;
@@ -24,16 +23,19 @@ public class EnemyFlyingAI : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private Color originalColor;
 
-    [Header("Sound Effects")]
+    [Header("Audio")]
     public AudioSource audioSource;
     public AudioClip shootSFX;
     public AudioClip hitSFX;
     public AudioClip deathSFX;
 
+    [Header("Loot Drop")]
+    public GameObject[] possibleDrops;
+    [Range(0f, 1f)] public float dropChance = 0.15f;
+
     private Transform targetPlayer;
     private float fireCooldown;
     private Rigidbody2D rb;
-
     private bool canShoot = false;
     private bool startedShootDelay = false;
 
@@ -42,10 +44,8 @@ public class EnemyFlyingAI : MonoBehaviour
         currentHP = maxHP;
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
-        if (spriteRenderer != null)
-            originalColor = spriteRenderer.color;
+        if (spriteRenderer != null) originalColor = spriteRenderer.color;
 
-        // ถ้าไม่มี AudioSource ใน Inspector จะเพิ่มให้อัตโนมัติ
         if (audioSource == null)
         {
             audioSource = gameObject.AddComponent<AudioSource>();
@@ -60,29 +60,18 @@ public class EnemyFlyingAI : MonoBehaviour
         if (targetPlayer == null || rb == null) return;
 
         float distance = Vector2.Distance(transform.position, targetPlayer.position);
-        if (float.IsNaN(distance)) return;
-
         Vector2 direction = (targetPlayer.position - transform.position).normalized;
-        if (float.IsNaN(direction.x) || float.IsNaN(direction.y)) return;
 
-        // 🧭 เคลื่อนที่เข้าใกล้หรือบินวน
         if (distance > orbitDistance)
-        {
             rb.MovePosition(rb.position + direction * moveSpeed * Time.deltaTime);
-        }
         else
         {
             float hoverRadius = 1.5f;
             float hoverSpeed = 2f;
-            Vector2 hoverOffset = new Vector2(
-                Mathf.Sin(Time.time * hoverSpeed),
-                Mathf.Cos(Time.time * hoverSpeed * 0.5f)
-            ) * hoverRadius * 0.2f;
-
+            Vector2 hoverOffset = new Vector2(Mathf.Sin(Time.time * hoverSpeed), Mathf.Cos(Time.time * hoverSpeed * 0.5f)) * 0.3f;
             rb.MovePosition(rb.position + hoverOffset * Time.deltaTime);
         }
 
-        // 🔫 ยิงเมื่ออยู่ในระยะ
         if (distance <= detectionRange)
         {
             if (!startedShootDelay)
@@ -102,7 +91,6 @@ public class EnemyFlyingAI : MonoBehaviour
             }
         }
 
-        // 🔁 หันหน้า
         if (spriteRenderer != null)
             spriteRenderer.flipX = direction.x >= 0;
     }
@@ -128,7 +116,6 @@ public class EnemyFlyingAI : MonoBehaviour
                 closestPlayer = player.transform;
             }
         }
-
         targetPlayer = closestPlayer;
     }
 
@@ -137,13 +124,10 @@ public class EnemyFlyingAI : MonoBehaviour
         if (bulletPrefab != null && firePoint != null && targetPlayer != null)
         {
             GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
-            BulletEnemy bulletScript = bullet.GetComponent<BulletEnemy>();
-            if (bulletScript != null)
-            {
-                bulletScript.ShootTowards(targetPlayer.position);
-            }
+            Rigidbody2D rbBullet = bullet.GetComponent<Rigidbody2D>();
+            if (rbBullet != null)
+                rbBullet.velocity = (targetPlayer.position - firePoint.position).normalized * 7f;
 
-            // 🔊 เล่นเสียงยิง
             if (shootSFX != null && audioSource != null)
                 audioSource.PlayOneShot(shootSFX);
         }
@@ -153,17 +137,14 @@ public class EnemyFlyingAI : MonoBehaviour
     {
         currentHP -= damage;
         StartCoroutine(HitFlash());
-
-        // 🔊 เสียงโดนยิง
         if (hitSFX != null && audioSource != null)
             audioSource.PlayOneShot(hitSFX);
 
         if (currentHP <= 0)
         {
-            // 🔊 เสียงตอนตาย
+            DropLoot();
             if (deathSFX != null && audioSource != null)
                 audioSource.PlayOneShot(deathSFX);
-
             Destroy(gameObject, 0.1f);
         }
     }
@@ -178,12 +159,17 @@ public class EnemyFlyingAI : MonoBehaviour
         }
     }
 
-    void OnDrawGizmosSelected()
+    void DropLoot()
     {
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, detectionRange);
+        if (possibleDrops.Length == 0) return;
 
-        Gizmos.color = Color.green;
-        Gizmos.DrawWireSphere(transform.position, orbitDistance);
+        if (Random.value <= dropChance)
+        {
+            int index = Random.Range(0, possibleDrops.Length);
+            GameObject drop = Instantiate(possibleDrops[index], transform.position, Quaternion.identity);
+            Rigidbody2D rbDrop = drop.GetComponent<Rigidbody2D>();
+            if (rbDrop != null)
+                rbDrop.velocity = new Vector2(Random.Range(-1f, 1f), Random.Range(2f, 3f));
+        }
     }
 }
