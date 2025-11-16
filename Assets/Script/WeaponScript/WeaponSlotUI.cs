@@ -3,16 +3,11 @@ using UnityEngine.UI;
 
 public class WeaponSlotUI : MonoBehaviour
 {
-    [Header("References")]
     public WeaponSlotManager slotManager;
-    public PlayerShooting playerShooting;
+    public PlayerShooting shooting;
 
-    [Header("UI Components")]
-    public Image backgroundImage;   // BG คงที่ (ตั้งใน Inspector)
-    public Image weaponArtImage;    // รูปปืนที่จะเปลี่ยน
-               // แสดงจำนวนกระสุน
+    public Image weaponArtImage;
 
-    [Header("Weapon Art Sprites")]
     public Sprite normalGunArt;
     public Sprite machineGunArt;
     public Sprite shotgunArt;
@@ -22,43 +17,26 @@ public class WeaponSlotUI : MonoBehaviour
 
     void Update()
     {
-        if (slotManager == null || playerShooting == null) return;
+        if (slotManager == null || shooting == null) return;
 
-        int currentSlot = slotManager.currentSlot;
-        var slot = slotManager.slots[currentSlot];
+        int slotID = slotManager.currentSlot;
+        var slot = slotManager.slots[slotID];
 
-        // ✅ อัปเดต art เฉพาะตอนเปลี่ยนปืน
-        if (currentSlot != lastSlot)
+        if (lastSlot != slotID)
         {
             UpdateWeaponArt(slot.weaponName);
-            lastSlot = currentSlot;
+            lastSlot = slotID;
         }
-
-        // 🎯 อัปเดตจำนวนกระสุน
-        string ammoDisplay = "∞";
-        if (slot.weaponName == "MachineGun")
-            ammoDisplay = playerShooting.MachineGunAmmo.ToString();
-        else if (slot.weaponName == "Shotgun")
-            ammoDisplay = playerShooting.ShotgunAmmo.ToString();
-        else if (slot.weaponName == "HomingGun")
-            ammoDisplay = playerShooting.HomingAmmo.ToString();
-
-        
     }
 
     void UpdateWeaponArt(string weaponName)
     {
-        Sprite newArt = null;
-
         switch (weaponName)
         {
-            case "MachineGun": newArt = machineGunArt; break;
-            case "Shotgun": newArt = shotgunArt; break;
-            case "HomingGun": newArt = homingGunArt; break;
-            default: newArt = normalGunArt; break;
+            case "MachineGun": weaponArtImage.sprite = machineGunArt; break;
+            case "Shotgun": weaponArtImage.sprite = shotgunArt; break;
+            case "HomingGun": weaponArtImage.sprite = homingGunArt; break;
+            default: weaponArtImage.sprite = normalGunArt; break;
         }
-
-        if (weaponArtImage != null)
-            weaponArtImage.sprite = newArt;
     }
 }

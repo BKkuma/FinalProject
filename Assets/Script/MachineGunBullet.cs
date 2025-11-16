@@ -7,20 +7,25 @@ public class MachineGunBullet : MonoBehaviour
     public float lifetime = 5f;
 
     [HideInInspector]
-    public Vector2 direction = Vector2.right; // ทิศทางยิง
+    public Vector2 direction = Vector2.right; // จะถูกเซ็ตจาก PlayerShooting
 
     private Rigidbody2D rb;
 
-    void Start()
+    void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+    }
+
+    public void Initialize(Vector2 shootDirection)
+    {
+        direction = shootDirection.normalized;
 
         // ปรับ rotation ให้หัวกระสุนชี้ไปทิศทางยิง
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - 0f;
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
         transform.rotation = Quaternion.Euler(0, 0, angle);
 
-        // ความเร็ว
-        rb.velocity = direction.normalized * speed;
+        // กำหนดความเร็ว
+        if (rb != null) rb.velocity = direction * speed;
 
         // ทำลายหลังเวลา
         Destroy(gameObject, lifetime);
