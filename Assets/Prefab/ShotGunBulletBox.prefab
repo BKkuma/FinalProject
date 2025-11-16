@@ -72,8 +72,8 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_Sprite: {fileID: 919088614, guid: f5b9b77b244723a4e9a0337e09855a79, type: 3}
+  m_SortingOrder: 1
+  m_Sprite: {fileID: -1853761471, guid: f5b9b77b244723a4e9a0337e09855a79, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -118,7 +118,7 @@ Transform:
   m_Children:
   - {fileID: 6372683359016474038}
   m_Father: {fileID: 0}
-  m_RootOrder: 39
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &7619348981327457796
 SpriteRenderer:
@@ -246,6 +246,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f92471353bcf2c94abe05216f05445ac, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gunType: 1
-  ammoAmount: 10
-  bulletPrefab: {fileID: 959396421581127210, guid: b66d7cdff97b903408715a5b1347ef6e, type: 3}
+  gunType: 0
+  ammoAmount: 100
+  bulletPrefab: {fileID: 519889055450138922, guid: 68bc8bdfb24978a41a960f4300b84689, type: 3}

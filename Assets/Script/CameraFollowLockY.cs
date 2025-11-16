@@ -22,6 +22,9 @@ public class CameraFollowLockY : MonoBehaviour
 
     [Header("Camera X Clamp Limit")]
     public float cameraRightLimit = Mathf.Infinity;
+    [HideInInspector] public bool lockMovementTemporarily = false;
+
+
     void Start()
     {
         if (target != null)
@@ -35,6 +38,8 @@ public class CameraFollowLockY : MonoBehaviour
     {
         if (target == null) return;
 
+        if (lockMovementTemporarily) return; // หยุดการตามผู้เล่นชั่วคราว
+
         Vector3 desiredPosition = target.position + offset;
         Vector3 smoothedPosition = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed);
 
@@ -42,18 +47,18 @@ public class CameraFollowLockY : MonoBehaviour
 
         if (inBossFight)
         {
-            // Boss fight lock
             float clampX = Mathf.Clamp(smoothedPosition.x, bossMinLimit.x, bossMaxLimit.x);
             float clampY = Mathf.Clamp(smoothedPosition.y, bossMinLimit.y, bossMaxLimit.y);
             transform.position = new Vector3(clampX, clampY, transform.position.z);
         }
         else
         {
-            // ปกติ
             if (smoothedPosition.x > maxX) maxX = smoothedPosition.x;
             transform.position = new Vector3(Mathf.Max(maxX, lockLeft), clampedY, transform.position.z);
         }
     }
+
+
 
     public void StartBossFight(Vector2 min, Vector2 max)
     {
