@@ -45,10 +45,7 @@ public class MissileBoss : MonoBehaviour
             other.GetComponent<PlayerHealth>()?.TakeDamage(damage);
             Explode();
         }
-        else if (other.CompareTag("Ground"))
-        {
-            Explode();
-        }
+        
     }
 
     void Explode()
