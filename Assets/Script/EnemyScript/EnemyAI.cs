@@ -5,9 +5,7 @@ using System.Collections;
 public class LootItem
 {
     public GameObject itemPrefab;
-
-    [Range(0f, 100f)]
-    public float dropRate = 1f; // ให้มีค่าเริ่มต้นป้องกัน Unity รีเซ็ต
+    public float dropRate; // แค่ float ธรรมดา ไม่ต้อง Range
 }
 
 public class EnemyAI : MonoBehaviour
