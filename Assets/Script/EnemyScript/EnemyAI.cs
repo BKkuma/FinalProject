@@ -1,6 +1,15 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+[System.Serializable]
+public class LootItem
+{
+    public GameObject itemPrefab;
+
+    [Range(0f, 100f)]
+    public float dropRate = 1f; // ให้มีค่าเริ่มต้นป้องกัน Unity รีเซ็ต
+}
+
 public class EnemyAI : MonoBehaviour
 {
     [Header("Movement & Detection")]
@@ -29,10 +38,8 @@ public class EnemyAI : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private Color originalColor;
 
-    [Header("Loot Drop")]
-    public GameObject[] possibleDrops;
-    [Range(0f, 1f)]
-    public float dropChance = 0.15f; // 15% โอกาส drop → ยากมาก
+    [Header("Loot Table")]
+    public LootItem[] lootTable;
 
     private Transform targetPlayer;
     private float fireCooldown;
@@ -40,11 +47,27 @@ public class EnemyAI : MonoBehaviour
     private float detectTimer = 0f;
     private Animator animator;
 
+    // =============================
+    // ป้องกัน Unity รีเซ็ตค่า dropRate
+    // =============================
+    void OnValidate()
+    {
+        if (lootTable == null) return;
+
+        foreach (var loot in lootTable)
+        {
+            if (loot.dropRate <= 0f)
+                loot.dropRate = 1f; // ถ้า dropRate <= 0 ให้กำหนดค่าเริ่มต้น 1
+        }
+    }
+
     void Awake()
     {
         currentHP = maxHP;
+
         spriteRenderer = GetComponent<SpriteRenderer>();
-        if (spriteRenderer != null) originalColor = spriteRenderer.color;
+        if (spriteRenderer != null)
+            originalColor = spriteRenderer.color;
 
         animator = GetComponent<Animator>();
 
@@ -95,6 +118,7 @@ public class EnemyAI : MonoBehaviour
             {
                 Vector2 direction = (targetPlayer.position - transform.position).normalized;
                 transform.position += (Vector3)direction * moveSpeed * Time.deltaTime;
+
                 animator.SetBool("isWalking", true);
                 animator.SetBool("isShooting", false);
             }
@@ -175,6 +199,7 @@ public class EnemyAI : MonoBehaviour
         {
             GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
             Rigidbody2D rb = bullet.GetComponent<Rigidbody2D>();
+
             if (rb != null)
             {
                 Vector2 dir = (targetPlayer.position - firePoint.position).normalized;
@@ -213,18 +238,22 @@ public class EnemyAI : MonoBehaviour
 
     void DropLoot()
     {
-        if (possibleDrops.Length == 0) return;
+        if (lootTable == null || lootTable.Length == 0) return;
 
-        if (Random.value <= dropChance)
+        float totalWeight = 0f;
+        foreach (var loot in lootTable)
+            totalWeight += loot.dropRate;
+
+        if (totalWeight <= 0f) return;
+
+        float roll = Random.Range(0, totalWeight);
+        float current = 0f;
+
+        foreach (var loot in lootTable)
         {
-            int index = Random.Range(0, possibleDrops.Length);
-            GameObject drop = Instantiate(possibleDrops[index], transform.position, Quaternion.identity);
-
-            Rigidbody2D rb = drop.GetComponent<Rigidbody2D>();
-            if (rb != null)
-            {
-                rb.velocity = new Vector2(Random.Range(-1f, 1f), Random.Range(2f, 3f));
-            }
+            if (Random.value <= loot.dropRate / 100f) // แปลงจาก 1–100 เป็น 0–1
+                Instantiate(loot.itemPrefab, transform.position, Quaternion.identity);
         }
+
     }
 }

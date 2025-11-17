@@ -29,10 +29,6 @@ public class EnemyFlyingAI : MonoBehaviour
     public AudioClip hitSFX;
     public AudioClip deathSFX;
 
-    [Header("Loot Drop")]
-    public GameObject[] possibleDrops;
-    [Range(0f, 1f)] public float dropChance = 0.15f;
-
     private Transform targetPlayer;
     private float fireCooldown;
     private Rigidbody2D rb;
@@ -66,7 +62,6 @@ public class EnemyFlyingAI : MonoBehaviour
             rb.MovePosition(rb.position + direction * moveSpeed * Time.deltaTime);
         else
         {
-            float hoverRadius = 1.5f;
             float hoverSpeed = 2f;
             Vector2 hoverOffset = new Vector2(Mathf.Sin(Time.time * hoverSpeed), Mathf.Cos(Time.time * hoverSpeed * 0.5f)) * 0.3f;
             rb.MovePosition(rb.position + hoverOffset * Time.deltaTime);
@@ -105,7 +100,7 @@ public class EnemyFlyingAI : MonoBehaviour
     {
         GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
         float closestDistance = Mathf.Infinity;
-        Transform closestPlayer = null;
+        Transform closest = null;
 
         foreach (GameObject player in players)
         {
@@ -113,63 +108,53 @@ public class EnemyFlyingAI : MonoBehaviour
             if (dist < closestDistance)
             {
                 closestDistance = dist;
-                closestPlayer = player.transform;
+                closest = player.transform;
             }
         }
-        targetPlayer = closestPlayer;
+
+        targetPlayer = closest;
     }
 
     void Shoot()
     {
-        if (bulletPrefab != null && firePoint != null && targetPlayer != null)
-        {
-            GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
-            Rigidbody2D rbBullet = bullet.GetComponent<Rigidbody2D>();
-            if (rbBullet != null)
-                rbBullet.velocity = (targetPlayer.position - firePoint.position).normalized * 7f;
+        if (bulletPrefab == null || firePoint == null || targetPlayer == null) return;
 
-            if (shootSFX != null && audioSource != null)
-                audioSource.PlayOneShot(shootSFX);
-        }
+        GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
+        Rigidbody2D rbBullet = bullet.GetComponent<Rigidbody2D>();
+        if (rbBullet != null)
+            rbBullet.velocity = (targetPlayer.position - firePoint.position).normalized * 7f;
+
+        if (shootSFX != null)
+            audioSource.PlayOneShot(shootSFX);
     }
 
     public void TakeDamage(int damage)
     {
         currentHP -= damage;
         StartCoroutine(HitFlash());
-        if (hitSFX != null && audioSource != null)
+
+        if (hitSFX != null)
             audioSource.PlayOneShot(hitSFX);
 
         if (currentHP <= 0)
         {
-            DropLoot();
-            if (deathSFX != null && audioSource != null)
+            // ใช้ระบบดรอปใหม่แทน
+            GetComponent<EnemyDrop>()?.Drop();
+
+            if (deathSFX != null)
                 audioSource.PlayOneShot(deathSFX);
+
             Destroy(gameObject, 0.1f);
         }
     }
 
-    private IEnumerator HitFlash()
+    IEnumerator HitFlash()
     {
         if (spriteRenderer != null)
         {
             spriteRenderer.color = hitColor;
             yield return new WaitForSeconds(hitFlashDuration);
             spriteRenderer.color = originalColor;
-        }
-    }
-
-    void DropLoot()
-    {
-        if (possibleDrops.Length == 0) return;
-
-        if (Random.value <= dropChance)
-        {
-            int index = Random.Range(0, possibleDrops.Length);
-            GameObject drop = Instantiate(possibleDrops[index], transform.position, Quaternion.identity);
-            Rigidbody2D rbDrop = drop.GetComponent<Rigidbody2D>();
-            if (rbDrop != null)
-                rbDrop.velocity = new Vector2(Random.Range(-1f, 1f), Random.Range(2f, 3f));
         }
     }
 }
