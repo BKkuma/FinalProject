@@ -28,6 +28,8 @@ public class TutorialUI : MonoBehaviour
     public Text shootText;
     public Text weaponText;
 
+    
+
     private bool isOpen = false;
 
     void Start()
@@ -49,16 +51,23 @@ public class TutorialUI : MonoBehaviour
 
     public void OpenTutorial()
     {
-        tutorialPanel.SetActive(true);
+        if (tutorialPanel != null)
+            tutorialPanel.SetActive(true);
+
         Time.timeScale = 0f;
         isOpen = true;
     }
 
     public void CloseTutorial()
     {
-        tutorialPanel.SetActive(false);
+        if (tutorialPanel != null)
+            tutorialPanel.SetActive(false);
+
         Time.timeScale = 1f;
         isOpen = false;
+
+        // เรียก Spawn / Landing Player หลังปิด Tutorial
+        
     }
 
     void SetupTutorialText()

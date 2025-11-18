@@ -140,11 +140,14 @@ public class PlayerMovement : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D collision)
     {
+
+
         if (collision.contacts[0].normal == Vector2.up)
         {
             jumpCount = 0;
             animator.SetBool("isJumping", false); // ✅ ปิด animation กระโดด
         }
+
 
         if (collision.gameObject.CompareTag("EnemyBullet"))
         {
@@ -153,4 +156,12 @@ public class PlayerMovement : MonoBehaviour
             Destroy(collision.gameObject);
         }
     }
+    public bool IsGrounded()
+    {
+        // Raycast ตรวจสอบพื้น
+        float extraHeight = 0.1f;
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, circleCollider.radius + extraHeight, LayerMask.GetMask("Ground"));
+        return hit.collider != null;
+    }
+
 }

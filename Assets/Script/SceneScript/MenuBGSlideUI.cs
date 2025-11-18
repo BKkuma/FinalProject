@@ -9,8 +9,6 @@ public class MenuBGSlideUI : MonoBehaviour
     public Button exitButton;
 
     [Header("Sound Settings")]
-  
-   
     [SerializeField] private AudioSource bgmSource;
 
     void Start()
@@ -24,6 +22,8 @@ public class MenuBGSlideUI : MonoBehaviour
 
         // เล่นเพลงทันที ถ้ามี
         if (bgmSource != null)
+        {
             bgmSource.Play();
+        }
     }
 }
