@@ -44,6 +44,7 @@ public class EnemyAI : MonoBehaviour
     private bool hasStartedShooting = false;
     private float detectTimer = 0f;
     private Animator animator;
+    private bool isDeadAndDropped = false;
 
     // =============================
     // ป้องกัน Unity รีเซ็ตค่า dropRate
@@ -219,6 +220,9 @@ public class EnemyAI : MonoBehaviour
 
         if (currentHP <= 0)
         {
+            if (isDeadAndDropped) return; // ป้องกันการเรียกซ้ำ
+            isDeadAndDropped = true; // ตั้งค่า Flag
+
             DropLoot();
             Destroy(gameObject, 0.1f);
         }
@@ -234,24 +238,37 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
+    // ใน EnemyAI.cs
+
     void DropLoot()
     {
         if (lootTable == null || lootTable.Length == 0) return;
 
+        // 1. คำนวณน้ำหนักรวมของโอกาส Drop ทั้งหมด
         float totalWeight = 0f;
         foreach (var loot in lootTable)
             totalWeight += loot.dropRate;
 
         if (totalWeight <= 0f) return;
 
-        float roll = Random.Range(0, totalWeight);
+        // 2. สุ่มตัวเลข (Roll) ระหว่าง 0 ถึง Total Weight
+        float roll = UnityEngine.Random.Range(0f, totalWeight);
         float current = 0f;
 
+        // 3. วนลูปเพื่อหา Item ที่ Roll ไปตกอยู่
         foreach (var loot in lootTable)
         {
-            if (Random.value <= loot.dropRate / 100f) // แปลงจาก 1–100 เป็น 0–1
-                Instantiate(loot.itemPrefab, transform.position, Quaternion.identity);
-        }
+            current += loot.dropRate; // เพิ่มน้ำหนักสะสม
 
+            // ถ้าตัวเลข Roll น้อยกว่าหรือเท่ากับน้ำหนักสะสมปัจจุบัน
+            if (roll < current)
+            {
+                // Drop Item นั้น
+                Instantiate(loot.itemPrefab, transform.position, Quaternion.identity);
+
+                // ** ⬅️ นี่คือหัวใจสำคัญ: หยุดการทำงานทันทีเพื่อไม่ให้ Drop ชิ้นอื่น **
+                return;
+            }
+        }
     }
 }

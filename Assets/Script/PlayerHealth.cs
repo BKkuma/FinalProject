@@ -62,6 +62,26 @@ public class PlayerHealth : MonoBehaviour
     }
 
     public int UsedLives => usedLives;
+    public bool RestoreLives(int amount)
+    {
+        // คำนวณชีวิตที่เหลือ (0 คือเต็ม)
+        int remainingLives = autoRespawnLives - usedLives;
+
+        // ตรวจสอบว่าชีวิตเต็มแล้วหรือไม่
+        if (remainingLives >= autoRespawnLives)
+        {
+            // ชีวิตเต็ม ไม่ต้องเพิ่ม
+            return false;
+        }
+
+        // เพิ่มจำนวนชีวิตที่ใช้ไป (ลดจำนวนชีวิตที่เสียไป)
+        // ใช้ Mathf.Max เพื่อไม่ให้ usedLives ติดลบ
+        usedLives = Mathf.Max(0, usedLives - amount);
+
+        // ** ตัวเลือกเสริม: อาจจะเรียก UI Update ทันทีที่นี่ถ้ามี **
+
+        return true; // สำเร็จในการเพิ่มชีวิต
+    }
 
     void Respawn()
     {

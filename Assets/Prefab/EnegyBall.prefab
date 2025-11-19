@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 2296322828102617168}
   - component: {fileID: 4905868127610145664}
   - component: {fileID: 460892438570272224}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: EnegyBall
   m_TagString: EnegyBall
   m_Icon: {fileID: 0}

@@ -192,13 +192,23 @@ public class PlayerShooting : MonoBehaviour
         MachineGunBullet mgBullet = bullet.GetComponent<MachineGunBullet>();
         if (mgBullet != null)
         {
-            mgBullet.speed = speed; // กำหนด speed ของ bullet
+            mgBullet.speed = speed;
             mgBullet.Initialize(direction);
         }
         else
         {
-            Rigidbody2D rb = bullet.GetComponent<Rigidbody2D>();
-            if (rb != null) rb.velocity = direction.normalized * speed;
+            // 🎯 ตรวจสอบ HomingBullet
+            HomingBullet hBullet = bullet.GetComponent<HomingBullet>();
+            if (hBullet != null)
+            {
+                hBullet.speed = speed;
+                hBullet.Initialize(direction); // ส่งทิศทางเริ่มต้น
+            }
+            else // ถ้าไม่ใช่ปืนพิเศษ ก็ยิงตรงแบบปกติ
+            {
+                Rigidbody2D rb = bullet.GetComponent<Rigidbody2D>();
+                if (rb != null) rb.velocity = direction.normalized * speed;
+            }
         }
 
         CreateMuzzleFlash(direction, shootPoint);

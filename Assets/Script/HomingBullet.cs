@@ -17,13 +17,42 @@ public class HomingBullet : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
 
-        // หาเป้าหมายที่มี tag เป็น Enemy
-        GameObject enemyObj = GameObject.FindWithTag("Enemy");
-        if (enemyObj != null)
-            target = enemyObj.transform;
+        // 🎯 เปลี่ยน Logic การหาเป้าหมาย: เรียกใช้ฟังก์ชันหาศัตรูที่ใกล้ที่สุด
+        target = FindClosestEnemy();
 
         // ทำลายตัวเองหลังจากเวลาที่กำหนด
         Destroy(gameObject, lifetime);
+    }
+    Transform FindClosestEnemy()
+    {
+        // 1. หารายชื่อศัตรูทั้งหมดในฉาก
+        GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
+
+        Transform closestEnemy = null;
+        float closestDistanceSqr = Mathf.Infinity; // ใช้ Squared Distance เพื่อประหยัดการคำนวณ
+
+        Vector3 currentPosition = transform.position;
+
+        // 2. วนลูปเพื่อหาศัตรูที่ใกล้ที่สุด
+        foreach (GameObject enemy in enemies)
+        {
+            // ตรวจสอบระยะทาง
+            Vector3 directionToTarget = enemy.transform.position - currentPosition;
+            float dSqr = directionToTarget.sqrMagnitude; // ระยะทางยกกำลังสอง
+
+            if (dSqr < closestDistanceSqr)
+            {
+                // ถ้าศัตรูตัวนี้ใกล้กว่าตัวที่เคยเจอ ให้เก็บไว้
+                closestDistanceSqr = dSqr;
+                closestEnemy = enemy.transform;
+            }
+        }
+
+        return closestEnemy;
+    }
+    public void Initialize(Vector2 direction)
+    {
+        initialDirection = direction;
     }
 
     void FixedUpdate()
@@ -42,6 +71,7 @@ public class HomingBullet : MonoBehaviour
         rb.angularVelocity = -rotateAmount * rotateSpeed;
         rb.velocity = transform.up * speed;
     }
+
 
     void OnCollisionEnter2D(Collision2D collision)
     {

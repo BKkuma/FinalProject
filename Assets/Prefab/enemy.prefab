@@ -178,9 +178,11 @@ MonoBehaviour:
   hitFlashDuration: 0.2
   lootTable:
   - itemPrefab: {fileID: 1794249163431258598, guid: b377f85e18e8cc8489634a1d92da0945, type: 3}
-    dropRate: 10
+    dropRate: 40
   - itemPrefab: {fileID: 1617457060019375142, guid: 1f6cec15dbb5d854eac21af4a8e074f5, type: 3}
-    dropRate: 10
+    dropRate: 40
+  - itemPrefab: {fileID: 5879055969387134424, guid: eb79d9eea48ffa34c8d12eab57dc73ae, type: 3}
+    dropRate: 20
 --- !u!95 &4546072356676400183
 Animator:
   serializedVersion: 5
