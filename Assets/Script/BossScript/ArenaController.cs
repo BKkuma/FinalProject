@@ -1,14 +1,18 @@
-using UnityEngine;
+Ôªøusing UnityEngine;
 
 public class ArenaController : MonoBehaviour
 {
     [Header("Arena Settings")]
-    public Transform liftablePlatform;      // æ◊Èπ∑’Ë®–≈Õ¬¢÷Èπ
-    public float liftHeight = 3f;           // §«“¡ Ÿß∑’Ë®–≈Õ¬
-    public float liftSpeed = 2f;            // §«“¡‡√Á«¬°
-    public GameObject barrier;              //  ‘Ëß°—Èπ‰¡Ë„ÀÈ player ÕÕ°
-    public Transform bossSpawnPoint;        // ®ÿ¥„ÀÈ∫Õ ª√“°Æ
-    public GameObject bossObject;           // ∫Õ „π Scene (Hierarchy) ∑’Ë®–‡ª‘¥
+    public Transform liftablePlatform;
+    public float liftHeight = 3f;
+    public float liftSpeed = 2f;
+    public GameObject barrier;
+    public Transform bossSpawnPoint;
+    public GameObject bossObject;
+
+    [Header("Camera")]
+    public Camera mainCamera;
+    public Camera arenaCamera;
 
     private bool playerOnTrigger = false;
     private bool isLifting = false;
@@ -23,10 +27,14 @@ public class ArenaController : MonoBehaviour
         targetPos = originalPos + Vector3.up * liftHeight;
 
         if (barrier != null)
-            barrier.SetActive(false); // ª‘¥‰«È°ËÕπ
+            barrier.SetActive(false);
 
         if (bossObject != null)
-            bossObject.SetActive(false); // ª‘¥∫Õ °ËÕπ
+            bossObject.SetActive(false);
+
+        // ‡∏Å‡∏•‡πâ‡∏≠‡∏á‡∏õ‡∏Å‡∏ï‡∏¥‡πÄ‡∏õ‡∏¥‡∏î‡∏≠‡∏¢‡∏π‡πà -> ‡∏Å‡∏•‡πâ‡∏≠‡∏á arena ‡∏õ‡∏¥‡∏î
+        if (arenaCamera != null) arenaCamera.gameObject.SetActive(false);
+        if (mainCamera != null) mainCamera.gameObject.SetActive(true);
     }
 
     void Update()
@@ -34,8 +42,12 @@ public class ArenaController : MonoBehaviour
         if (playerOnTrigger && !isLifting)
         {
             isLifting = true;
-            if (barrier != null) barrier.SetActive(true);
-            Debug.Log("‡√‘Ë¡¬°æ◊Èπ!");
+
+            if (barrier != null)
+                barrier.SetActive(true);
+
+            // ‡πÄ‡∏õ‡∏•‡∏µ‡πà‡∏¢‡∏ô‡∏Å‡∏•‡πâ‡∏≠‡∏á‡πÑ‡∏õ ArenaCamera
+            SwapToArenaCamera();
         }
 
         if (isLifting && liftablePlatform != null)
@@ -45,11 +57,24 @@ public class ArenaController : MonoBehaviour
 
             if (Vector3.Distance(liftablePlatform.position, targetPos) < 0.01f)
             {
-                Debug.Log("æ◊Èπ¬° Ÿß ÿ¥·≈È«! Spawn Boss");
                 SpawnBoss();
                 isLifting = false;
             }
         }
+    }
+
+    void SwapToArenaCamera()
+    {
+        if (mainCamera != null) mainCamera.gameObject.SetActive(false);
+        if (arenaCamera != null) arenaCamera.gameObject.SetActive(true);
+        Debug.Log("Switched to Arena Camera");
+    }
+
+    void SwapToMainCamera()
+    {
+        if (arenaCamera != null) arenaCamera.gameObject.SetActive(false);
+        if (mainCamera != null) mainCamera.gameObject.SetActive(true);
+        Debug.Log("Switched back to Main Camera");
     }
 
     void SpawnBoss()
@@ -57,16 +82,17 @@ public class ArenaController : MonoBehaviour
         if (bossObject != null && bossSpawnPoint != null)
         {
             bossObject.transform.position = bossSpawnPoint.position;
-            bossObject.SetActive(true); // ‡ª‘¥∫Õ 
+            bossObject.SetActive(true);
+
+            // ‡πÄ‡∏ä‡∏∑‡πà‡∏≠‡∏° event ‡πÉ‡∏´‡πâ‡∏ñ‡∏π‡∏Å‡∏ï‡πâ‡∏≠‡∏á
+            JetBossPhase1 boss = bossObject.GetComponent<JetBossPhase1>();
+            if (boss != null)
+                boss.onPhase1Finished = OnBossDefeated;
+
             Debug.Log("Boss Spawned!");
-        }
-        else
-        {
-            Debug.LogError("BossObject À√◊Õ BossSpawnPoint ¬—ß‰¡Ë‰¥È assign!");
         }
     }
 
-    // Trigger µ√«®ºŸÈ‡≈Ëπ¬◊π
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.CompareTag("Player"))
@@ -82,11 +108,15 @@ public class ArenaController : MonoBehaviour
             playerOnTrigger = false;
     }
 
-    // ‡¡◊ËÕ∫Õ µ“¬
     public void OnBossDefeated()
     {
-        Debug.Log("Boss defeated!  “¡“√∂ª≈¥ Barrier À√◊Õ spawn Phase 2 ‰¥È");
+        Debug.Log("Boss defeated!");
+
+        // ‡∏õ‡∏•‡∏î‡∏Å‡∏≥‡πÅ‡∏û‡∏á
         if (barrier != null)
             barrier.SetActive(false);
+
+        // ‡πÄ‡∏õ‡∏•‡∏µ‡πà‡∏¢‡∏ô‡∏Å‡∏•‡∏±‡∏ö‡πÑ‡∏õ MainCamera
+        SwapToMainCamera();
     }
 }

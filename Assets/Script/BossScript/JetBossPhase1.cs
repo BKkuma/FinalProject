@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
+
 public class JetBossPhase1 : MonoBehaviour
 {
     [Header("Movement & Arena")]
@@ -14,6 +15,13 @@ public class JetBossPhase1 : MonoBehaviour
     private List<Transform> currentSidePoints;
     private int currentPointIndex = 0;
     private bool movingRight = true;
+    private bool isDead = false;
+
+    [Header("Escape / Phase2 Transition")]
+    public Transform escapePoint;     // จุดที่จะบินไปเมื่อ HP หมด
+    public float escapeSpeed = 8f;    // ความเร็วตอนบินหนี
+    public float flyUpDistance = 10f; // บินขึ้นสูงแค่ไหนก่อนหายไป
+    public System.Action onPhase1Finished;
 
     [Header("Combat")]
     public GameObject bulletPrefab;
@@ -37,8 +45,9 @@ public class JetBossPhase1 : MonoBehaviour
     [Header("Audio")]
     public AudioSource audioSource;
     public AudioClip shootSound;
-
     public System.Action onBossDefeated;
+
+
 
     void Start()
     {
@@ -54,7 +63,7 @@ public class JetBossPhase1 : MonoBehaviour
 
     IEnumerator BossBehavior()
     {
-        while (true)
+        while (!isDead)
         {
             if (currentSidePoints.Count == 0) yield return null;
 
@@ -74,15 +83,14 @@ public class JetBossPhase1 : MonoBehaviour
             GameObject player = GameObject.FindWithTag("Player");
             if (player != null)
             {
-                int attackType = Random.Range(0, 2); // 0 = Fan Shot, 1 = Homing Shot
+                int attackType = Random.Range(0, 2);
                 if (attackType == 0)
                     yield return StartCoroutine(FanShotAtPlayer(player.transform.position));
                 else
                     yield return StartCoroutine(HomingShot(player.transform.position, 3));
-
             }
 
-            // ---- PICK NEXT POINT ----
+            // ---- NEXT POINT ----
             currentPointIndex++;
             if (currentPointIndex >= currentSidePoints.Count)
             {
@@ -93,6 +101,7 @@ public class JetBossPhase1 : MonoBehaviour
         }
     }
 
+    // ----------------- FAN SHOT -----------------
     IEnumerator FanShotAtPlayer(Vector3 playerPos)
     {
         if (bulletPrefab == null || firePoint == null) yield break;
@@ -103,11 +112,9 @@ public class JetBossPhase1 : MonoBehaviour
         float startAngle = centerAngle - fanAngle / 2f;
         float angleStep = fanAngle / (fanBulletCount - 1);
 
-        float spriteOffset = 0f; // สำหรับกระสุนแนวนอนหันขวา
-
         for (int i = 0; i < fanBulletCount; i++)
         {
-            float totalAngle = startAngle + angleStep * i + spriteOffset;
+            float totalAngle = startAngle + angleStep * i;
             Vector2 dir = new Vector2(Mathf.Cos(totalAngle * Mathf.Deg2Rad), Mathf.Sin(totalAngle * Mathf.Deg2Rad));
 
             GameObject bullet = Instantiate(bulletPrefab, firePoint.position, Quaternion.Euler(0, 0, totalAngle));
@@ -121,6 +128,7 @@ public class JetBossPhase1 : MonoBehaviour
         yield return new WaitForSeconds(bulletFireRate);
     }
 
+    // ----------------- HOMING SHOT -----------------
     IEnumerator HomingShot(Vector3 playerPos, int shots = 3)
     {
         if (bulletPrefab == null || firePoint == null) yield break;
@@ -132,8 +140,7 @@ public class JetBossPhase1 : MonoBehaviour
             GameObject bullet = Instantiate(bulletPrefab, firePoint.position, Quaternion.identity);
 
             float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-            float spriteOffset = 0f; // สำหรับกระสุนแนวนอนหันขวา
-            bullet.transform.rotation = Quaternion.Euler(0, 0, angle + spriteOffset);
+            bullet.transform.rotation = Quaternion.Euler(0, 0, angle);
 
             Rigidbody2D rb = bullet.GetComponent<Rigidbody2D>();
             if (rb != null)
@@ -142,21 +149,26 @@ public class JetBossPhase1 : MonoBehaviour
             if (audioSource != null && shootSound != null)
                 audioSource.PlayOneShot(shootSound);
 
-            yield return new WaitForSeconds(bulletFireRate); // หน่วงระหว่างนัด
+            yield return new WaitForSeconds(bulletFireRate);
         }
     }
 
 
+
+    // ----------------- DAMAGE -----------------
     public void TakeDamage(int dmg)
     {
+        if (isDead) return;
+
         currentHP -= dmg;
         if (hitFlashRoutine != null) StopCoroutine(hitFlashRoutine);
         hitFlashRoutine = StartCoroutine(HitFlash());
 
         if (currentHP <= 0)
         {
-            onBossDefeated?.Invoke();
-            Destroy(gameObject);
+            isDead = true;
+            StopAllCoroutines();
+            StartCoroutine(BossEscape());
         }
     }
 
@@ -171,6 +183,40 @@ public class JetBossPhase1 : MonoBehaviour
         hitFlashRoutine = null;
     }
 
+    // ----------------- ESCAPE SEQUENCE (เข้าคัทซีนหนี + Phase 2) -----------------
+    IEnumerator BossEscape()
+    {
+        // 1. เดินไป escapePoint
+        if (escapePoint != null)
+        {
+            while (Vector3.Distance(transform.position, escapePoint.position) > 0.1f)
+            {
+                transform.position = Vector3.MoveTowards(transform.position, escapePoint.position, escapeSpeed * Time.deltaTime);
+                yield return null;
+            }
+        }
+
+        // ⭐ 2. หยุดนิ่ง 1–2 วิ ก่อนบินหนี ⭐
+        float waitBeforeFly = Random.Range(1f, 2f);
+        yield return new WaitForSeconds(waitBeforeFly);
+
+        // 3. บินขึ้นบน
+        Vector3 targetUp = transform.position + Vector3.up * flyUpDistance;
+
+        while (Vector3.Distance(transform.position, targetUp) > 0.1f)
+        {
+            transform.position = Vector3.MoveTowards(transform.position, targetUp, escapeSpeed * Time.deltaTime);
+            yield return null;
+        }
+
+        // 4. แจ้งให้เข้า Phase 2
+        onPhase1Finished?.Invoke();
+
+        Destroy(gameObject);
+    }
+
+
+    // ----------------- COLLISION -----------------
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.CompareTag("PlayerBullet"))
