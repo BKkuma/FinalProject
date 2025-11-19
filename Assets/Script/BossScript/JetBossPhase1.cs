@@ -57,29 +57,67 @@ public class JetBossPhase1 : MonoBehaviour
 
         currentSidePoints = movingRight ? leftPoints.ToList() : rightPoints.ToList();
         currentPointIndex = 0;
-
-        StartCoroutine(BossBehavior());
     }
+    public void StartBossBehavior()
+    {
+        if ((leftPoints != null && leftPoints.Length > 0) || (rightPoints != null && rightPoints.Length > 0))
+        {
+            StartCoroutine(BossBehavior());
+        }
+        else
+        {
+            Debug.LogWarning("Boss has no movement points assigned!");
+        }
+    }
+
 
     IEnumerator BossBehavior()
     {
+        if ((leftPoints == null || leftPoints.Length == 0) && (rightPoints == null || rightPoints.Length == 0))
+        {
+            Debug.LogWarning("Boss has no movement points assigned!");
+            yield break;
+        }
+
         while (!isDead)
         {
-            if (currentSidePoints.Count == 0) yield return null;
+            if (currentSidePoints == null || currentSidePoints.Count == 0)
+            {
+                yield return null;
+                continue;
+            }
+
+            if (currentPointIndex >= currentSidePoints.Count)
+            {
+                movingRight = !movingRight;
+                currentSidePoints = movingRight ? leftPoints.ToList() : rightPoints.ToList();
+                currentPointIndex = 0;
+
+                if (currentSidePoints.Count == 0)
+                {
+                    yield return null;
+                    continue;
+                }
+            }
 
             Transform target = currentSidePoints[currentPointIndex];
+            if (target == null)
+            {
+                currentPointIndex++;
+                continue;
+            }
 
-            // ---- MOVE ----
+            // Move
             while (Vector3.Distance(transform.position, target.position) > 0.1f)
             {
                 transform.position = Vector3.MoveTowards(transform.position, target.position, moveSpeed * Time.deltaTime);
                 yield return null;
             }
 
-            // ---- WAIT ----
+            // Wait
             yield return new WaitForSeconds(waitTimeAtPoint);
 
-            // ---- SHOOT ----
+            // Shoot
             GameObject player = GameObject.FindWithTag("Player");
             if (player != null)
             {
@@ -90,16 +128,11 @@ public class JetBossPhase1 : MonoBehaviour
                     yield return StartCoroutine(HomingShot(player.transform.position, 3));
             }
 
-            // ---- NEXT POINT ----
+            // Next point
             currentPointIndex++;
-            if (currentPointIndex >= currentSidePoints.Count)
-            {
-                movingRight = !movingRight;
-                currentSidePoints = movingRight ? leftPoints.ToList() : rightPoints.ToList();
-                currentPointIndex = 0;
-            }
         }
     }
+
 
     // ----------------- FAN SHOT -----------------
     IEnumerator FanShotAtPlayer(Vector3 playerPos)
