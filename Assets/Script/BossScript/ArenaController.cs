@@ -24,6 +24,9 @@ public class ArenaController : MonoBehaviour
     private Vector3 targetPlatformPos;
     private bool bossBehaviorStarted = false;
 
+    // [แก้ไข 1] เพิ่มตัวแปรนี้เพื่อเช็คว่า Event ทำงานไปแล้วหรือยัง กันการรันซ้ำ
+    private bool hasActivated = false;
+
     void Start()
     {
         if (liftablePlatform != null)
@@ -38,17 +41,15 @@ public class ArenaController : MonoBehaviour
 
     void Update()
     {
-        if (playerOnTrigger && !isLifting)
+        // [แก้ไข 2] เพิ่มเงื่อนไข !hasActivated
+        if (playerOnTrigger && !isLifting && !hasActivated)
         {
+            hasActivated = true; // สั่งให้เป็นจริงทันที เพื่อไม่ให้เข้าลูปนี้อีก
             isLifting = true;
 
             if (barrier != null) barrier.SetActive(true);
 
-            if (playerCameraFollow != null)
-                playerCameraFollow.lockMovementTemporarily = true;
-
-            if (mainCamera != null && arenaCameraPoint != null)
-                StartCoroutine(MoveCamera(mainCamera.transform, arenaCameraPoint.position, cameraMoveDuration));
+            StartCoroutine(MoveCameraToArena());
         }
 
         if (isLifting && liftablePlatform != null)
@@ -64,21 +65,24 @@ public class ArenaController : MonoBehaviour
         }
     }
 
-    IEnumerator MoveCamera(Transform cam, Vector3 targetPos, float duration)
+    IEnumerator MoveCameraToArena()
     {
-        Vector3 startPos = cam.position;
-        float elapsed = 0f;
-        targetPos.z = startPos.z;
+        if (playerCameraFollow != null)
+            playerCameraFollow.enabled = false;
 
-        while (elapsed < duration)
+        Vector3 startPos = mainCamera.transform.position;
+        Vector3 endPos = arenaCameraPoint.position;
+        endPos.z = startPos.z;
+
+        float elapsed = 0f;
+        while (elapsed < cameraMoveDuration)
         {
             elapsed += Time.deltaTime;
-            float t = cameraEase.Evaluate(elapsed / duration);
-            cam.position = Vector3.Lerp(startPos, targetPos, t);
+            float t = cameraEase.Evaluate(elapsed / cameraMoveDuration);
+            mainCamera.transform.position = Vector3.Lerp(startPos, endPos, t);
             yield return null;
         }
-
-        cam.position = targetPos;
+        mainCamera.transform.position = endPos;
     }
 
     void SpawnBoss()
@@ -92,7 +96,7 @@ public class ArenaController : MonoBehaviour
             if (boss != null)
             {
                 boss.onPhase1Finished = OnBossDefeated;
-                boss.StartBossBehavior(); // เริ่ม Coroutine ของบอสครั้งเดียว
+                boss.StartBossBehavior();
                 bossBehaviorStarted = true;
             }
         }
@@ -106,28 +110,62 @@ public class ArenaController : MonoBehaviour
 
     public void OnBossDefeated()
     {
-        if (barrier != null) barrier.SetActive(false);
+        if (barrier != null) Destroy(barrier);
+
+        // ปิด CameraFollowLockY ก่อนเลื่อนกล้องกลับ (เผื่อไว้)
+        if (playerCameraFollow != null)
+            playerCameraFollow.enabled = false;
+
         StartCoroutine(ReturnCameraToPlayer());
     }
 
     IEnumerator ReturnCameraToPlayer()
     {
+        Debug.Log("Start Returning Camera...");
         Vector3 startPos = mainCamera.transform.position;
-        Vector3 endPos = playerCameraFollow.target.position + playerCameraFollow.offset;
+
+        // ใช้ Target เดิมที่ผูกไว้ใน Inspector เลย ไม่ต้อง Find ใหม่
+        Vector3 endPos = Vector3.zero;
+        if (playerCameraFollow != null && playerCameraFollow.target != null)
+        {
+            endPos = playerCameraFollow.target.position + playerCameraFollow.offset;
+        }
+        else
+        {
+            // กันเหนียว: ถ้าไม่มี Target จริงๆ ค่อยหา
+            GameObject p = GameObject.FindWithTag("Player");
+            if (p != null) endPos = p.transform.position;
+        }
+
         endPos.z = startPos.z;
 
         float elapsed = 0f;
         while (elapsed < cameraMoveDuration)
         {
-            elapsed += Time.deltaTime;
+            // [แก้ไข 3] ใช้ unscaledDeltaTime เผื่อกรณีเกมหยุดเวลาตอนชนะ
+            elapsed += Time.unscaledDeltaTime;
             float t = cameraEase.Evaluate(elapsed / cameraMoveDuration);
             mainCamera.transform.position = Vector3.Lerp(startPos, endPos, t);
             yield return null;
         }
-
         mainCamera.transform.position = endPos;
 
+        Debug.Log("Camera Returned. Re-enabling script...");
+
+        // [แก้ไข 4] บังคับเปิดกลับทันที
         if (playerCameraFollow != null)
-            playerCameraFollow.lockMovementTemporarily = false;
+        {
+            // เช็ค Target อีกรอบ
+            if (playerCameraFollow.target == null)
+            {
+                GameObject p = GameObject.FindWithTag("Player");
+                if (p != null) playerCameraFollow.target = p.transform;
+            }
+
+            playerCameraFollow.ResetLockToTarget(); // รีเซ็ตค่า Lock X (สำคัญมาก)
+            playerCameraFollow.enabled = true;      // เปิดสคริปต์
+
+            Debug.Log("Camera Script ENABLED Success.");
+        }
     }
 }

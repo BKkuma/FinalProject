@@ -8,7 +8,7 @@ public class CameraFollowLockY : MonoBehaviour
     public float smoothSpeed = 0.125f;
 
     [Header("Lock Y Settings")]
-    public float minY = -2f;   // ล็อกสูงต่ำ
+    public float minY = -2f;
     public float maxY = 5f;
 
     [Header("Boss Lock")]
@@ -22,8 +22,6 @@ public class CameraFollowLockY : MonoBehaviour
 
     [Header("Camera X Clamp Limit")]
     public float cameraRightLimit = Mathf.Infinity;
-    [HideInInspector] public bool lockMovementTemporarily = false;
-
 
     void Start()
     {
@@ -37,8 +35,6 @@ public class CameraFollowLockY : MonoBehaviour
     void LateUpdate()
     {
         if (target == null) return;
-
-        if (lockMovementTemporarily) return; // หยุดการตามผู้เล่นชั่วคราว
 
         Vector3 desiredPosition = target.position + offset;
         Vector3 smoothedPosition = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed);
@@ -58,8 +54,6 @@ public class CameraFollowLockY : MonoBehaviour
         }
     }
 
-
-
     public void StartBossFight(Vector2 min, Vector2 max)
     {
         inBossFight = true;
@@ -72,11 +66,13 @@ public class CameraFollowLockY : MonoBehaviour
         inBossFight = false;
     }
 
-    // สำหรับ PlayerBounds
+    // --- ส่วนที่เพิ่มกลับมาเพื่อให้ PlayerBounds ทำงานได้ ---
     public float GetCameraLeftEdge()
     {
         Camera cam = GetComponent<Camera>();
         if (cam == null) return transform.position.x;
+
+        // คำนวณขอบซ้ายจาก Orthographic Size และ Aspect Ratio
         float halfWidth = cam.orthographicSize * cam.aspect;
         return transform.position.x - halfWidth;
     }
@@ -85,13 +81,16 @@ public class CameraFollowLockY : MonoBehaviour
     {
         Camera cam = GetComponent<Camera>();
         if (cam == null) return transform.position.x;
+
+        // คำนวณขอบขวา
         float halfWidth = cam.orthographicSize * cam.aspect;
         return transform.position.x + halfWidth;
     }
+    // --------------------------------------------------
+
     public void TeleportToTarget(Vector3 newTargetPos)
     {
         Vector3 desiredPosition = newTargetPos + offset;
-
         float clampedY = Mathf.Clamp(desiredPosition.y, minY, maxY);
 
         if (inBossFight)
@@ -107,4 +106,12 @@ public class CameraFollowLockY : MonoBehaviour
         }
     }
 
+    // ฟังก์ชันสำหรับรีเซ็ตกล้องหลังจบบอส (ที่เราเพิ่มกันไปก่อนหน้านี้)
+    public void ResetLockToTarget()
+    {
+        if (target != null)
+        {
+            maxX = target.position.x + offset.x;
+        }
+    }
 }
