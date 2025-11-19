@@ -8,7 +8,7 @@ public class EnergyOrb : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("Boss")) // อย่าลืมตั้ง tag ให้บอส
+        if (collision.CompareTag("Enemy")) // อย่าลืมตั้ง tag ให้บอส
         {
             // เอฟเฟกต์ตอนลูกพลังชน
             if (impactEffect)

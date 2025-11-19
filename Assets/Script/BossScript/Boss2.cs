@@ -4,12 +4,18 @@ using System.Collections.Generic;
 
 public class Boss2 : MonoBehaviour
 {
+    [Header("Phase 2 Intro Settings")]
+    public bool waitForAnimation = true; // ถ้าติ๊กถูก บอสจะยืนนิ่งจนกว่าจะโดนเรียก BeginPhase2Combat
+    public float autoStartDelay = 3f;    // ถ้าไม่ใช้ Animation Event จะเริ่มเองในกี่วิ
+    public Animator bossAnimator;        // ลาก Animator ของบอสมาใส่
+    public string introAnimationName = "Transform"; // ชื่อท่าแปลงร่างใน Animator
+
     [Header("Movement & Warp Points")]
     public Transform[] warpPoints;
     public Transform centerPoint;
     public Transform overloadPoint;
-    public float moveSpeed = 20f;       // ความเร็วในการเคลื่อนที่ปกติ
-    public float phase2SpeedMultiplier = 1.5f; // ความเร็วคูณตอน Phase 2
+    public float moveSpeed = 20f;
+    public float phase2SpeedMultiplier = 1.5f;
     public float warpDelay = 5f;
 
     [Header("Attack")]
@@ -36,6 +42,8 @@ public class Boss2 : MonoBehaviour
     private bool isInvincible = false;
     private Transform lastWarpPoint;
 
+    private bool battleStarted = false;
+
     void Start()
     {
         currentHP = maxHP;
@@ -43,7 +51,35 @@ public class Boss2 : MonoBehaviour
         if (spriteRenderer != null)
             originalColor = spriteRenderer.color;
 
+        // ** แยกการ Setup และการ Combat ออกจากกัน **
+        isInvincible = true;
+
+        if (waitForAnimation)
+        {
+            if (bossAnimator != null)
+            {
+                // Play animation
+                bossAnimator.Play(introAnimationName);
+            }
+            // ใช้ Invoke เป็นตัวสำรอง ในกรณีที่ลืมใส่ Animation Event
+            Invoke("BeginPhase2Combat", autoStartDelay);
+        }
+        else
+        {
+            // ถ้าไม่รอ ก็เริ่มสู้เลยทันที
+            BeginPhase2Combat();
+        }
+    }
+
+    // *** ฟังก์ชันนี้ต้องถูกเรียกโดย Animation Event หรือ Invoke เมื่อแปลงร่างเสร็จ ***
+    public void BeginPhase2Combat()
+    {
+        if (battleStarted) return;
+
+        battleStarted = true;
+        isInvincible = false; // บอสพร้อมรับดาเมจ
         StartCoroutine(BossRoutine());
+        Debug.Log("Phase 2 Combat Started!");
     }
 
     IEnumerator BossRoutine()
@@ -69,7 +105,6 @@ public class Boss2 : MonoBehaviour
         }
     }
 
-    // ---------------- Phase 1 ----------------
     IEnumerator Phase1Routine()
     {
         while (currentHP > maxHP / 2)
@@ -79,7 +114,6 @@ public class Boss2 : MonoBehaviour
         currentPhase = Phase.Frenzy;
     }
 
-    // ---------------- Frenzy ----------------
     IEnumerator FrenzyRoutine()
     {
         yield return StartCoroutine(MoveTo(centerPoint.position, moveSpeed * 1.2f));
@@ -100,7 +134,6 @@ public class Boss2 : MonoBehaviour
         currentPhase = Phase.Overload;
     }
 
-    // ---------------- Overload ----------------
     IEnumerator OverloadRoutine()
     {
         yield return StartCoroutine(MoveTo(overloadPoint.position, moveSpeed));
@@ -108,7 +141,6 @@ public class Boss2 : MonoBehaviour
         currentPhase = Phase.Phase2;
     }
 
-    // ---------------- Phase 2 ----------------
     IEnumerator Phase2Routine()
     {
         float phase2WarpDelay = warpDelay / 2f;
@@ -136,7 +168,6 @@ public class Boss2 : MonoBehaviour
         }
     }
 
-    // ---------------- Movement Helper ----------------
     IEnumerator MoveAndShoot(int balls, float speed)
     {
         Transform target = GetRandomWarpPoint();
@@ -188,8 +219,16 @@ public class Boss2 : MonoBehaviour
     // ---------------- Damage ----------------
     public void TakeDamage(int dmg)
     {
-        if (isInvincible) return;
+        if (isInvincible)
+        {
+            Debug.LogWarning("Boss2: โดนยิง แต่เป็นอมตะ (Invincible)! ดาเมจ: " + dmg);
+            return;
+        }
+
         currentHP -= dmg;
+
+        // ** DEBUG LOG ที่เพิ่มเข้ามา **
+        Debug.Log("Boss2: โดนดาเมจ " + dmg + " | HP คงเหลือ: " + currentHP + " / " + maxHP);
 
         if (hitFlashRoutine != null)
             StopCoroutine(hitFlashRoutine);

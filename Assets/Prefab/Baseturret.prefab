@@ -45,9 +45,9 @@ GameObject:
   - component: {fileID: 3220463565348226750}
   - component: {fileID: 6852262016641549812}
   - component: {fileID: 620441622071544937}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Baseturret
-  m_TagString: PlayerBullet
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

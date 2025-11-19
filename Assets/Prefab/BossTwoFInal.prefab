@@ -45,6 +45,7 @@ GameObject:
   - component: {fileID: 4215809975765008548}
   - component: {fileID: 7656960848346544349}
   - component: {fileID: 8002051687232359668}
+  - component: {fileID: 5107479201752372245}
   m_Layer: 0
   m_Name: BossTwoFInal
   m_TagString: Boss
@@ -228,3 +229,33 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 7.8599997, y: 4.44}
   m_EdgeRadius: 0
+--- !u!114 &5107479201752372245
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5801532979156805872}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b91ce8f39576fe44092cf40a47159009, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  warpPoints:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  centerPoint: {fileID: 0}
+  overloadPoint: {fileID: 0}
+  moveSpeed: 20
+  phase2SpeedMultiplier: 1.5
+  warpDelay: 5
+  energyBallPrefab: {fileID: 0}
+  energyBallSpawnPoints: []
+  phase1Balls: 3
+  phase2Balls: 5
+  energyBallDelay: 0.2
+  maxHP: 100
+  hitColor: {r: 1, g: 0, b: 0, a: 1}
+  hitFlashDuration: 0.1

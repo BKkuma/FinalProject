@@ -42,6 +42,7 @@ public class PlayerShooting : MonoBehaviour
     public AudioClip machineGunSound;
     public AudioClip shotgunSound;
     public AudioClip homingGunSound;
+    public AudioClip ammoEmptySound;
     private AudioSource audioSource;
 
     void Start()
@@ -58,24 +59,66 @@ public class PlayerShooting : MonoBehaviour
 
     void HandleShoot()
     {
+        // ตัวแปรสำหรับเก็บว่าปืนพิเศษถูกกดแต่กระสุนหมดหรือไม่
+        bool isSpecialGunEmpty = false;
+
         if (Input.GetKey(KeyCode.K))
         {
             if (animator != null) animator.SetBool("isShooting", true);
 
-            if (usingMachineGun && !isMachineGunFiring)
+            // ------------------ Machine Gun (เสียงต่อเนื่อง) ------------------
+            if (usingMachineGun)
             {
-                audioSource.clip = machineGunSound;
-                audioSource.loop = true;
-                audioSource.Play();
-                isMachineGunFiring = true;
+                if (machineGunAmmo > 0)
+                {
+                    if (!isMachineGunFiring)
+                    {
+                        audioSource.clip = machineGunSound;
+                        audioSource.loop = true;
+                        audioSource.Play();
+                        isMachineGunFiring = true;
+                    }
+                }
+                else // Machine Gun กระสุนหมด
+                {
+                    if (isMachineGunFiring)
+                    {
+                        audioSource.Stop();
+                        audioSource.loop = false;
+                        isMachineGunFiring = false;
+                    }
+                    isSpecialGunEmpty = true; // ตั้งค่าว่าปืนพิเศษกระสุนหมด
+                }
             }
 
+            // ------------------ Logic การยิงจริง ------------------
             if (Time.time >= nextFireTime)
             {
                 Transform shootPoint = GetShootPoint();
                 Vector2 direction = playerMove.ShootDirection;
 
-                if (usingShotgun && shotgunAmmo > 0)
+                // ตรวจสอบกระสุนหมดของ Shotgun และ Homing ก่อน
+                if (usingShotgun && shotgunAmmo <= 0)
+                {
+                    isSpecialGunEmpty = true;
+                }
+                else if (usingHoming && homingAmmo <= 0)
+                {
+                    isSpecialGunEmpty = true;
+                }
+
+                // ถ้าปืนพิเศษกระสุนหมด และไม่ใช่ Machine Gun ที่เพิ่งจัดการเสียงไปแล้ว
+                if (isSpecialGunEmpty)
+                {
+                    // เล่นเสียงกระสุนหมด
+                    if (ammoEmptySound != null && audioSource.clip != ammoEmptySound) // ตรวจสอบไม่ให้เล่นซ้ำถ้ายังคงกดค้าง
+                    {
+                        PlayGunSound(ammoEmptySound);
+                        nextFireTime = Time.time + normalFireRate; // ใส่ delay เพื่อไม่ให้ spam เสียง
+                    }
+                }
+                // ------------------ Logic ยิงปืนพิเศษ & Normal (เหมือนเดิม) ------------------
+                else if (usingShotgun && shotgunAmmo > 0)
                 {
                     ShootShotgun(shootPoint, direction, 10f);
                     PlayGunSound(shotgunSound);
@@ -91,7 +134,6 @@ public class PlayerShooting : MonoBehaviour
                 }
                 else if (usingMachineGun && machineGunAmmo > 0)
                 {
-                    // แก้ไขให้ยิงตามทิศทางของ player
                     Shoot(currentBulletPrefab, shootPoint, direction, 12f);
                     nextFireTime = Time.time + machineGunFireRate;
                     machineGunAmmo--;
@@ -104,6 +146,7 @@ public class PlayerShooting : MonoBehaviour
                 }
             }
         }
+        // ------------------ Input.GetKey(KeyCode.K) คือ else block ------------------
         else
         {
             if (isMachineGunFiring)

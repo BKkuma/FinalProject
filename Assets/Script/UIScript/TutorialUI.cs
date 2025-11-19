@@ -19,6 +19,7 @@ public class TutorialUI : MonoBehaviour
     public Image key1;
     public Image key2;
     public Image key3;
+    public Image key4;
 
     [Header("Texts")]
     public Text moveText;
@@ -88,6 +89,6 @@ public class TutorialUI : MonoBehaviour
             shootText.text = "Shoot : ";
 
         if (weaponText != null)
-            weaponText.text = "Change weapon : /  /  ";
+            weaponText.text = "Change weapon :  /  /  / ";
     }
 }

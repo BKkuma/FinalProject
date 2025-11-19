@@ -8,10 +8,18 @@ public class Bullet : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Enemy"))
         {
+            // บอสเก่า
             HelicopterBoss boss = collision.gameObject.GetComponent<HelicopterBoss>();
             if (boss != null)
             {
                 boss.TakeDamage(damage);
+            }
+
+            // ** บอส Phase 2 ที่คุณต้องการเพิ่ม **
+            Boss2 boss2 = collision.gameObject.GetComponent<Boss2>();
+            if (boss2 != null)
+            {
+                boss2.TakeDamage(damage);
             }
 
             // สำหรับศัตรูธรรมดา
