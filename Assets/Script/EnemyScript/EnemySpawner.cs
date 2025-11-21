@@ -2,21 +2,20 @@
 
 public class EnemySpawner : MonoBehaviour
 {
-    public GameObject enemyPrefab;     // Prefab ของศัตรู
-    public Transform[] spawnPoints;    // จุดที่ศัตรูสามารถเกิด
-    public int maxEnemies = 10;        // จำนวนศัตรูสูงสุด (spawn ได้สูงสุดกี่ครั้ง)
-    public float spawnDelay = 2f;      // เวลาหน่วงก่อน Spawn ตัวใหม่
-    public float activationRange = 8f; // ระยะที่ Player ต้องเข้ามาใกล้ถึงจะเริ่ม Spawn
+    public GameObject enemyPrefab;      // Prefab ของศัตรู
+    public Transform[] spawnPoints;     // จุดที่ศัตรูสามารถเกิด
+    public int maxEnemies = 10;         // จำนวนศัตรูสูงสุดที่จะ Spawn ได้ทั้งหมด
+    public float spawnDelay = 2f;       // เวลาหน่วงก่อน Spawn ตัวใหม่
+    public float activationRange = 8f;  // ระยะที่ Player ต้องเข้ามาใกล้
 
-    private int enemiesSpawned = 0;    // นับจำนวนที่ spawn ไปแล้ว
-    private GameObject currentEnemy;   // เก็บ Enemy ที่ spawn ปัจจุบัน
-    private float spawnTimer = 0f;     // ตัวจับเวลา
-    private Transform player;          // เก็บ reference ของ Player
-    private bool isActive = false;     // Spawner เริ่มทำงานหรือยัง
+    private int enemiesSpawned = 0;     // นับจำนวนที่ spawn ไปแล้ว
+    private GameObject currentEnemy;    // เก็บ Enemy ตัวล่าสุด
+    private float spawnTimer = 0f;
+    private Transform player;
+    private bool isActive = false;
 
     void Start()
     {
-        // หาตัว Player (tag ต้องตั้งเป็น "Player")
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
             player = playerObj.transform;
@@ -24,35 +23,39 @@ public class EnemySpawner : MonoBehaviour
 
     void Update()
     {
-        // ถ้าเจอ Player ให้เช็คระยะก่อน
+        // เช็คระยะ Player
         if (player != null && !isActive)
         {
             float distance = Vector2.Distance(transform.position, player.position);
             if (distance <= activationRange)
             {
-                isActive = true; // เริ่มทำงาน
+                isActive = true;
             }
         }
 
-        if (!isActive) return; // ถ้ายังไม่ active → ไม่ต้องทำงาน
+        if (!isActive) return;
 
-        // ถ้ายังไม่ครบจำนวนสูงสุด และไม่มี enemy อยู่ในฉาก
+        // เงื่อนไขการ Spawn:
+        // 1. ยังไม่ครบจำนวน Max
+        // 2. (Optional) ถ้าอยากให้มีทีละตัว ให้เช็ค currentEnemy == null ด้วย
+        //    แต่ถ้าอยากให้ Spawn ออกมาเรื่อยๆ ตามเวลา ให้ลบเงื่อนไข currentEnemy == null ออก
         if (currentEnemy == null && enemiesSpawned < maxEnemies)
         {
-            // นับเวลา
             spawnTimer += Time.deltaTime;
 
             if (spawnTimer >= spawnDelay)
             {
                 SpawnEnemy();
-                spawnTimer = 0f; // รีเซ็ตเวลา
+                spawnTimer = 0f;
             }
         }
     }
 
     void SpawnEnemy()
     {
-        // เลือกตำแหน่งสุ่มจาก spawnPoints
+        if (spawnPoints.Length == 0) return;
+
+        // เลือกจุดเกิดสุ่ม
         int index = Random.Range(0, spawnPoints.Length);
         Transform spawnPoint = spawnPoints[index];
 
@@ -60,18 +63,10 @@ public class EnemySpawner : MonoBehaviour
         currentEnemy = Instantiate(enemyPrefab, spawnPoint.position, spawnPoint.rotation);
 
         enemiesSpawned++;
-
-        // ผูก event เมื่อ Enemy ตาย ให้ clear currentEnemy
-        EnemyHealth health = currentEnemy.GetComponent<EnemyHealth>();
-        if (health != null)
-        {
-            health.onDeath += () => currentEnemy = null;
-        }
     }
 
     void OnDrawGizmosSelected()
     {
-        // วาดวงกลมแสดงระยะ activation
         Gizmos.color = Color.green;
         Gizmos.DrawWireSphere(transform.position, activationRange);
     }

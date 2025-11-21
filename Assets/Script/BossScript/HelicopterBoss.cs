@@ -8,6 +8,10 @@ public class HelicopterBoss : MonoBehaviour
     public Transform topPoint;
     public Transform bottomPoint;
 
+    [Header("Intro Settings")]
+    public Transform entryPoint; // จุดที่บอสเริ่มบินเข้ามา (นอกจอ)
+    public float entrySpeed = 5f; // ความเร็วตอนบินเข้าฉาก
+
     [Header("Combat")]
     public GameObject bulletPrefab;
     public Transform firePoint;
@@ -40,6 +44,9 @@ public class HelicopterBoss : MonoBehaviour
     private Coroutine hitFlashRoutine;
     private Color originalColor;
 
+    // เช็คว่าเริ่มสู้หรือยัง
+    private bool isBattleActive = false;
+
     public System.Action onBossDefeated;
 
     void Start()
@@ -52,18 +59,22 @@ public class HelicopterBoss : MonoBehaviour
         if (spriteRenderer != null)
             originalColor = spriteRenderer.color;
 
-        if (topPoint != null)
-            transform.position = topPoint.position;
-
-        if (missilePoint != null && missilePrefab != null)
-            attackRoutine = StartCoroutine(MissileAttack());
-
         if (audioSource == null)
-            audioSource = GetComponent<AudioSource>(); // เผื่อยังไม่ได้ใส่ใน Inspector
+            audioSource = GetComponent<AudioSource>();
+
+        // ** ปิดการทำงานเริ่มต้น **
+        // ย้ายบอสไปจุด Entry Point (นอกจอ) ก่อน
+        if (entryPoint != null)
+            transform.position = entryPoint.position;
+        else if (topPoint != null)
+            transform.position = topPoint.position;
     }
 
     void Update()
     {
+        // ถ้ายังไม่เริ่มสู้ (กำลังบินเข้าฉาก) ห้ามขยับ Phase หรือยิง
+        if (!isBattleActive) return;
+
         phaseTimer += Time.deltaTime;
         if (phaseTimer >= phaseDuration)
         {
@@ -74,6 +85,36 @@ public class HelicopterBoss : MonoBehaviour
         Move();
     }
 
+    // ฟังก์ชันนี้จะถูกเรียกโดย BossActivator
+    public void StartBossSequence()
+    {
+        StartCoroutine(IntroMoveRoutine());
+    }
+
+    IEnumerator IntroMoveRoutine()
+    {
+        // บินจาก EntryPoint ไปยัง TopPoint
+        if (entryPoint != null && topPoint != null)
+        {
+            transform.position = entryPoint.position;
+
+            while (Vector3.Distance(transform.position, topPoint.position) > 0.1f)
+            {
+                transform.position = Vector3.MoveTowards(transform.position, topPoint.position, entrySpeed * Time.deltaTime);
+                yield return null;
+            }
+        }
+
+        // เมื่อถึงที่แล้ว เริ่มการต่อสู้
+        isBattleActive = true;
+
+        // เริ่มยิง Missile เป็นอย่างแรก (ตาม Logic เดิม)
+        if (missilePoint != null && missilePrefab != null)
+            attackRoutine = StartCoroutine(MissileAttack());
+
+        Debug.Log("Boss Intro Finished! Fight Started.");
+    }
+
     void Move()
     {
         if (topPoint == null || bottomPoint == null) return;
@@ -81,6 +122,8 @@ public class HelicopterBoss : MonoBehaviour
         Vector3 target = inTopPhase ? topPoint.position : bottomPoint.position;
         transform.position = Vector3.MoveTowards(transform.position, target, moveSpeed * Time.deltaTime);
     }
+
+    // ... (ส่วนอื่นๆ เหมือนเดิม: SwitchPhase, Attacks, TakeDamage, HitFlash, OnCollision) ...
 
     void SwitchPhase()
     {
@@ -150,6 +193,9 @@ public class HelicopterBoss : MonoBehaviour
 
     public void TakeDamage(int dmg)
     {
+        // ถ้ายังไม่เริ่มสู้ ห้ามรับดาเมจ (กันผู้เล่นโกงยิงตอน Intro)
+        if (!isBattleActive) return;
+
         currentHP -= dmg;
 
         if (hitFlashRoutine != null)
@@ -159,9 +205,6 @@ public class HelicopterBoss : MonoBehaviour
 
         if (currentHP <= 0)
         {
-            //if (UIManager.instance != null)
-               // UIManager.instance.ShowWinUI();
-
             onBossDefeated?.Invoke();
             Destroy(gameObject);
         }

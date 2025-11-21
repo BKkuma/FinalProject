@@ -29,11 +29,16 @@ public class EnemyFlyingAI : MonoBehaviour
     public AudioClip hitSFX;
     public AudioClip deathSFX;
 
+    [Header("Spawn Settings")]
+    public Vector2 spawnOffset = new Vector2(10f, 5f); // บินมาจากทางขวาบน (ปรับค่านี้ได้)
+    public float spawnDuration = 1.5f; // ใช้เวลาบินเข้ามากี่วินาที
+
     private Transform targetPlayer;
     private float fireCooldown;
     private Rigidbody2D rb;
     private bool canShoot = false;
     private bool startedShootDelay = false;
+    private bool isSpawning = true; // เช็คว่ากำลังบินเข้าฉากอยู่ไหม
 
     void Awake()
     {
@@ -49,8 +54,17 @@ public class EnemyFlyingAI : MonoBehaviour
         }
     }
 
+    void Start()
+    {
+        // เริ่มบินเข้ามาจากนอกจอ (ไม่ขยายร่าง)
+        StartCoroutine(FlyInEntrance());
+    }
+
     void Update()
     {
+        // ถ้ากำลังบินเข้าฉาก ให้หยุดทำงานส่วนอื่น
+        if (isSpawning) return;
+
         FindClosestPlayer();
 
         if (targetPlayer == null || rb == null) return;
@@ -88,6 +102,37 @@ public class EnemyFlyingAI : MonoBehaviour
 
         if (spriteRenderer != null)
             spriteRenderer.flipX = direction.x >= 0;
+    }
+
+    // ฟังก์ชันบินเข้าฉาก (แก้ให้ไม่ขยายร่างแล้ว)
+    IEnumerator FlyInEntrance()
+    {
+        isSpawning = true;
+
+        // 1. จำจุดเป้าหมายจริง (ที่ Spawner สั่งเกิด)
+        Vector3 targetPosition = transform.position;
+
+        // 2. ย้ายตัวเองไปที่จุดเริ่มต้น (Spawn Point + Offset)
+        Vector3 startPosition = targetPosition + (Vector3)spawnOffset;
+        transform.position = startPosition;
+
+        float timer = 0f;
+
+        while (timer < spawnDuration)
+        {
+            timer += Time.deltaTime;
+            float t = timer / spawnDuration;
+            float smoothT = Mathf.SmoothStep(0, 1, t); // ทำให้เคลื่อนที่นุ่มนวล (ช้า-เร็ว-ช้า)
+
+            // เคลื่อนที่จากนอกจอ -> จุดเป้าหมาย
+            transform.position = Vector3.Lerp(startPosition, targetPosition, smoothT);
+
+            yield return null;
+        }
+
+        // จบการเคลื่อนที่
+        transform.position = targetPosition;
+        isSpawning = false; // เริ่ม AI ได้
     }
 
     IEnumerator StartShootingAfterDelay(float delay)
@@ -138,8 +183,8 @@ public class EnemyFlyingAI : MonoBehaviour
 
         if (currentHP <= 0)
         {
-            // ใช้ระบบดรอปใหม่แทน
-            GetComponent<EnemyDrop>()?.Drop();
+            //EnemyDrop drop = GetComponent<EnemyDrop>();
+            //if (drop != null) drop.Drop();
 
             if (deathSFX != null)
                 audioSource.PlayOneShot(deathSFX);

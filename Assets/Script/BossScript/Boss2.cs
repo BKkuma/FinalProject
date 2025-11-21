@@ -5,10 +5,10 @@ using System.Collections.Generic;
 public class Boss2 : MonoBehaviour
 {
     [Header("Phase 2 Intro Settings")]
-    public bool waitForAnimation = true; // ถ้าติ๊กถูก บอสจะยืนนิ่งจนกว่าจะโดนเรียก BeginPhase2Combat
-    public float autoStartDelay = 3f;    // ถ้าไม่ใช้ Animation Event จะเริ่มเองในกี่วิ
-    public Animator bossAnimator;        // ลาก Animator ของบอสมาใส่
-    public string introAnimationName = "Transform"; // ชื่อท่าแปลงร่างใน Animator
+    public bool waitForAnimation = true;
+    public float autoStartDelay = 3f;
+    public Animator bossAnimator;
+    public string introAnimationName = "Transform";
 
     [Header("Movement & Warp Points")]
     public Transform[] warpPoints;
@@ -24,6 +24,13 @@ public class Boss2 : MonoBehaviour
     public int phase1Balls = 3;
     public int phase2Balls = 5;
     public float energyBallDelay = 0.2f;
+
+    [Header("Audio Settings")]
+    public AudioSource audioSource;
+    public AudioClip chargeSFX;         // เสียงชาร์จพลัง
+    public AudioClip shootSFX_Phase1;   // เสียงยิงปกติ (ใช้ทั้ง Phase 1 และ Phase 2)
+    public AudioClip shootSFX_Frenzy;   // ** เสียงใหม่: เสียงยิงรัวตอนอยู่กลางจอ (ท่าไม้ตาย) **
+    public float chargeDuration = 0.5f;
 
     [Header("Stats")]
     public int maxHP = 100;
@@ -51,33 +58,29 @@ public class Boss2 : MonoBehaviour
         if (spriteRenderer != null)
             originalColor = spriteRenderer.color;
 
-        // ** แยกการ Setup และการ Combat ออกจากกัน **
+        if (audioSource == null)
+            audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+            audioSource = gameObject.AddComponent<AudioSource>();
+
         isInvincible = true;
 
         if (waitForAnimation)
         {
-            if (bossAnimator != null)
-            {
-                // Play animation
-                bossAnimator.Play(introAnimationName);
-            }
-            // ใช้ Invoke เป็นตัวสำรอง ในกรณีที่ลืมใส่ Animation Event
+            if (bossAnimator != null) bossAnimator.Play(introAnimationName);
             Invoke("BeginPhase2Combat", autoStartDelay);
         }
         else
         {
-            // ถ้าไม่รอ ก็เริ่มสู้เลยทันที
             BeginPhase2Combat();
         }
     }
 
-    // *** ฟังก์ชันนี้ต้องถูกเรียกโดย Animation Event หรือ Invoke เมื่อแปลงร่างเสร็จ ***
     public void BeginPhase2Combat()
     {
         if (battleStarted) return;
-
         battleStarted = true;
-        isInvincible = false; // บอสพร้อมรับดาเมจ
+        isInvincible = false;
         StartCoroutine(BossRoutine());
         Debug.Log("Phase 2 Combat Started!");
     }
@@ -116,16 +119,25 @@ public class Boss2 : MonoBehaviour
 
     IEnumerator FrenzyRoutine()
     {
+        // เคลื่อนที่ไปกลางจอ
         yield return StartCoroutine(MoveTo(centerPoint.position, moveSpeed * 1.2f));
 
         isInvincible = true;
         float timer = 0f;
         float frenzyDuration = 30f;
 
+        // เล่นเสียงชาร์จ
+        PlaySound(chargeSFX);
+        yield return new WaitForSeconds(chargeDuration);
+
         while (timer < frenzyDuration)
         {
             Transform spawnPoint = energyBallSpawnPoints[Random.Range(0, energyBallSpawnPoints.Length)];
             Instantiate(energyBallPrefab, spawnPoint.position, Quaternion.identity);
+
+            // 🎯 ใช้เสียง Frenzy (เสียงใหม่) สำหรับท่ายิงรัวนี้
+            PlaySound(shootSFX_Frenzy);
+
             timer += energyBallDelay;
             yield return new WaitForSeconds(energyBallDelay);
         }
@@ -155,11 +167,19 @@ public class Boss2 : MonoBehaviour
             List<Transform> availablePoints = new List<Transform>(energyBallSpawnPoints);
             int count = Mathf.Min(phase2Balls, availablePoints.Count);
 
+            // เสียงชาร์จ
+            PlaySound(chargeSFX);
+            yield return new WaitForSeconds(chargeDuration);
+
             for (int i = 0; i < count; i++)
             {
                 int index = Random.Range(0, availablePoints.Count);
                 Transform spawnPoint = availablePoints[index];
                 Instantiate(energyBallPrefab, spawnPoint.position, Quaternion.identity);
+
+                // 🎯 กลับมาใช้เสียง Phase 1 ตามที่ต้องการ
+                PlaySound(shootSFX_Phase1);
+
                 availablePoints.RemoveAt(index);
                 yield return new WaitForSeconds(phase2EnergyBallDelay);
             }
@@ -176,11 +196,18 @@ public class Boss2 : MonoBehaviour
         List<Transform> availablePoints = new List<Transform>(energyBallSpawnPoints);
         int count = Mathf.Min(balls, availablePoints.Count);
 
+        PlaySound(chargeSFX);
+        yield return new WaitForSeconds(chargeDuration);
+
         for (int i = 0; i < count; i++)
         {
             int index = Random.Range(0, availablePoints.Count);
             Transform spawnPoint = availablePoints[index];
             Instantiate(energyBallPrefab, spawnPoint.position, Quaternion.identity);
+
+            // 🎯 ใช้เสียง Phase 1 ปกติ
+            PlaySound(shootSFX_Phase1);
+
             availablePoints.RemoveAt(index);
             yield return new WaitForSeconds(energyBallDelay);
         }
@@ -216,19 +243,19 @@ public class Boss2 : MonoBehaviour
         return target;
     }
 
-    // ---------------- Damage ----------------
+    void PlaySound(AudioClip clip)
+    {
+        if (audioSource != null && clip != null)
+        {
+            audioSource.PlayOneShot(clip);
+        }
+    }
+
     public void TakeDamage(int dmg)
     {
-        if (isInvincible)
-        {
-            Debug.LogWarning("Boss2: โดนยิง แต่เป็นอมตะ (Invincible)! ดาเมจ: " + dmg);
-            return;
-        }
+        if (isInvincible) return;
 
         currentHP -= dmg;
-
-        // ** DEBUG LOG ที่เพิ่มเข้ามา **
-        Debug.Log("Boss2: โดนดาเมจ " + dmg + " | HP คงเหลือ: " + currentHP + " / " + maxHP);
 
         if (hitFlashRoutine != null)
             StopCoroutine(hitFlashRoutine);

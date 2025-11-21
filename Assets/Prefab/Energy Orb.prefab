@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 5754894915998995153}
   - component: {fileID: 5562896468137814151}
   - component: {fileID: 5571899754491048791}
-  - component: {fileID: 225941260513401197}
+  - component: {fileID: 1031893760441620035}
   m_Layer: 0
   m_Name: Energy Orb
   m_TagString: Untagged
@@ -149,7 +149,7 @@ CircleCollider2D:
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 2.005
---- !u!114 &225941260513401197
+--- !u!114 &1031893760441620035
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -161,7 +161,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be53388287159604d8813169c5f95f9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  boss: {fileID: 0}
   bossAnimator: {fileID: 0}
   powerUpTrigger: PowerUp
   impactEffect: {fileID: 0}

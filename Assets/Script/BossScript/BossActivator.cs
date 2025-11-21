@@ -4,12 +4,12 @@ using System.Collections;
 public class BossActivator : MonoBehaviour
 {
     [Header("References")]
-    public GameObject boss;                   // บอส
-    public Camera mainCamera;                 // กล้องผู้เล่น
-    public GameObject player;                 // ผู้เล่น
+    public GameObject boss;                   // บอส
+    public Camera mainCamera;                 // กล้องผู้เล่น
+    public GameObject player;                 // ผู้เล่น
     public CameraFollowLockY playerCameraFollow; // Follow script ของผู้เล่น
-    public Transform bossCameraPoint;         // Empty GameObject ตำแหน่งกล้องบอส
-    public GameObject bossBounds;             // กำแพงบอส
+    public Transform bossCameraPoint;         // Empty GameObject ตำแหน่งกล้องบอส
+    public GameObject bossBounds;             // กำแพงบอส
 
     [Header("Camera Settings")]
     public float camMoveDuration = 1.2f;
@@ -23,7 +23,7 @@ public class BossActivator : MonoBehaviour
         {
             triggered = true;
 
-            // เปิดบอส
+            // เปิดบอส (แต่บอสจะยังไม่ทำอะไรจนกว่าจะเรียก StartBossSequence)
             if (boss != null)
                 boss.SetActive(true);
 
@@ -52,33 +52,38 @@ public class BossActivator : MonoBehaviour
         Vector3 endPos = bossCameraPoint.position;
         endPos.z = startPos.z; // รักษา Z ของ mainCamera
 
-        // เลื่อนกล้องไป boss
+        // 1. เลื่อนกล้องไปหาบอส
         float timer = 0f;
         while (timer < camMoveDuration)
         {
             timer += Time.deltaTime;
             float t = camEase.Evaluate(timer / camMoveDuration);
-            mainCamera.transform.position = Vector3.Lerp(startPos, endPos, t);
+            Vector3 tempPos = Vector3.Lerp(startPos, endPos, t);
+
+            // Clamping Y ขณะกล้องเลื่อน
+            float clampedY = Mathf.Clamp(tempPos.y, playerCameraFollow.minY, playerCameraFollow.maxY);
+            mainCamera.transform.position = new Vector3(tempPos.x, clampedY, tempPos.z);
+
             yield return null;
         }
-        mainCamera.transform.position = endPos;
 
-        // เปลี่ยนเพลงบอส
+        // 2. เปลี่ยนเพลงบอส
         if (MusicManager.Instance != null)
             MusicManager.Instance.PlayBossMusic();
 
-        // รอ boss ตาย
+        // 3. สั่งให้บอสเล่นฉากเปิดตัว (บินเข้ามา)
         HelicopterBoss heli = boss.GetComponent<HelicopterBoss>();
         if (heli != null)
         {
+            heli.StartBossSequence(); // <--- สั่งบอสบินเข้าฉากตรงนี้
+
             bool bossDefeated = false;
             heli.onBossDefeated += () => { bossDefeated = true; };
             yield return new WaitUntil(() => bossDefeated);
         }
 
-        // กลับตำแหน่งผู้เล่น
+        // 4. กลับตำแหน่งผู้เล่น (หลังจากบอสตาย)
         startPos = mainCamera.transform.position;
-        // คำนวณ endPos เพื่อใช้ในการ Lerp เท่านั้น
         Vector3 endPosToPlayer = player.transform.position + (playerCameraFollow != null ? playerCameraFollow.offset : Vector3.zero);
         endPosToPlayer.z = startPos.z;
 
@@ -87,36 +92,26 @@ public class BossActivator : MonoBehaviour
         {
             timer += Time.deltaTime;
             float t = camEase.Evaluate(timer / camMoveDuration);
-
             Vector3 tempPos = Vector3.Lerp(startPos, endPosToPlayer, t);
 
-            // [FIX 1] Clamping Y ขณะกล้องเลื่อน (ใช้ minY/maxY จาก CameraFollowLockY)
             float clampedY = Mathf.Clamp(tempPos.y, playerCameraFollow.minY, playerCameraFollow.maxY);
             mainCamera.transform.position = new Vector3(tempPos.x, clampedY, tempPos.z);
 
             yield return null;
         }
 
-        // เปิด follow ผู้เล่นอีกครั้ง
+        // 5. เปิด follow ผู้เล่นอีกครั้ง
         if (playerCameraFollow != null)
         {
-            // [FIX] ใช้ TeleportToTarget แทนการตั้งค่า position โดยตรง
-            Vector3 newTargetPos = player.transform.position; // ตำแหน่งผู้เล่น
-            playerCameraFollow.TeleportToTarget(newTargetPos); // กล้องจะ Clamping ตำแหน่งทันที
-
+            Vector3 newTargetPos = player.transform.position;
+            playerCameraFollow.TeleportToTarget(newTargetPos);
             playerCameraFollow.ResetLockToTarget();
             playerCameraFollow.enabled = true;
         }
 
-        // เปิด PlayerBounds
-        if (pb != null)
-            pb.enabled = true;
+        if (pb != null) pb.enabled = true;
+        if (bossBounds != null) bossBounds.SetActive(false);
 
-        // ปิด bossBounds
-        if (bossBounds != null)
-            bossBounds.SetActive(false);
-
-        // กลับเพลงปกติ
         if (MusicManager.Instance != null)
             MusicManager.Instance.PlayNormalMusic();
     }
