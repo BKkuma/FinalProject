@@ -125,19 +125,19 @@ public class ArenaController : MonoBehaviour
         Vector3 startPos = mainCamera.transform.position;
 
         // ใช้ Target เดิมที่ผูกไว้ใน Inspector เลย ไม่ต้อง Find ใหม่
-        Vector3 endPos = Vector3.zero;
+        Vector3 endPosToPlayer = Vector3.zero;
         if (playerCameraFollow != null && playerCameraFollow.target != null)
         {
-            endPos = playerCameraFollow.target.position + playerCameraFollow.offset;
+            endPosToPlayer = playerCameraFollow.target.position + playerCameraFollow.offset;
         }
         else
         {
             // กันเหนียว: ถ้าไม่มี Target จริงๆ ค่อยหา
             GameObject p = GameObject.FindWithTag("Player");
-            if (p != null) endPos = p.transform.position;
+            if (p != null) endPosToPlayer = p.transform.position;
         }
 
-        endPos.z = startPos.z;
+        endPosToPlayer.z = startPos.z;
 
         float elapsed = 0f;
         while (elapsed < cameraMoveDuration)
@@ -145,10 +145,16 @@ public class ArenaController : MonoBehaviour
             // [แก้ไข 3] ใช้ unscaledDeltaTime เผื่อกรณีเกมหยุดเวลาตอนชนะ
             elapsed += Time.unscaledDeltaTime;
             float t = cameraEase.Evaluate(elapsed / cameraMoveDuration);
-            mainCamera.transform.position = Vector3.Lerp(startPos, endPos, t);
+
+            Vector3 tempPos = Vector3.Lerp(startPos, endPosToPlayer, t);
+
+            // [FIX 1] Clamping Y ขณะกล้องเลื่อน (ใช้ minY/maxY จาก CameraFollowLockY)
+            float clampedY = Mathf.Clamp(tempPos.y, playerCameraFollow.minY, playerCameraFollow.maxY);
+            mainCamera.transform.position = new Vector3(tempPos.x, clampedY, tempPos.z);
+
             yield return null;
         }
-        mainCamera.transform.position = endPos;
+        // mainCamera.transform.position = endPosToPlayer; // ลบออก! เราจะใช้ Teleport แทน
 
         Debug.Log("Camera Returned. Re-enabling script...");
 
@@ -163,6 +169,11 @@ public class ArenaController : MonoBehaviour
             }
 
             playerCameraFollow.ResetLockToTarget(); // รีเซ็ตค่า Lock X (สำคัญมาก)
+
+            // [FIX] ใช้ TeleportToTarget แทนการตั้งค่า position โดยตรง
+            Vector3 newTargetPos = playerCameraFollow.target.position;
+            playerCameraFollow.TeleportToTarget(newTargetPos); // กล้องจะ Clamping ตำแหน่งทันที
+
             playerCameraFollow.enabled = true;      // เปิดสคริปต์
 
             Debug.Log("Camera Script ENABLED Success.");

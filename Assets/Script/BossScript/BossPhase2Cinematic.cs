@@ -19,7 +19,7 @@ public class BossPhase2Cinematic : MonoBehaviour
     [Header("Camera Control")]
     public Camera mainCamera;
     public CameraFollowLockY playerCameraFollow;
-    public Transform bossCameraPoint;           // ตำแหน่งที่กล้องจะเลื่อนไปหยุด
+    public Transform bossCameraPoint;           // ตำแหน่งที่กล้องจะเลื่อนไปหยุด
     public GameObject player;
 
     [Header("Camera Animation Settings")]
@@ -93,10 +93,10 @@ public class BossPhase2Cinematic : MonoBehaviour
         }
 
         // 2. เอฟเฟกต์แปลงร่าง
-      //  if (transformEffect != null)
-      //  {
-       //     Instantiate(transformEffect, endPoint.position, Quaternion.identity);
-       // }
+        //  if (transformEffect != null)
+        //  {
+        //     Instantiate(transformEffect, endPoint.position, Quaternion.identity);
+        // }
 
         yield return new WaitForSeconds(0.2f);
 
@@ -125,23 +125,33 @@ public class BossPhase2Cinematic : MonoBehaviour
         {
             Vector3 startPos = mainCamera.transform.position;
             Vector3 playerOffset = (playerCameraFollow != null) ? playerCameraFollow.offset : Vector3.zero;
-            Vector3 endPos = player.transform.position + playerOffset;
-            endPos.z = startPos.z;
+            Vector3 endPosToPlayer = player.transform.position + playerOffset;
+            endPosToPlayer.z = startPos.z;
 
             float timer = 0f;
             while (timer < camMoveDuration)
             {
                 timer += Time.deltaTime;
                 float t = camEase.Evaluate(timer / camMoveDuration);
-                mainCamera.transform.position = Vector3.Lerp(startPos, endPos, t);
+                Vector3 tempPos = Vector3.Lerp(startPos, endPosToPlayer, t);
+
+                // [FIX 1] Clamping Y ขณะกล้องเลื่อน (ใช้ minY/maxY จาก CameraFollowLockY)
+                float clampedY = Mathf.Clamp(tempPos.y, playerCameraFollow.minY, playerCameraFollow.maxY);
+                mainCamera.transform.position = new Vector3(tempPos.x, clampedY, tempPos.z);
+
                 yield return null;
             }
-            mainCamera.transform.position = endPos;
+            // mainCamera.transform.position = endPosToPlayer; // ลบออก! เราจะใช้ Teleport แทน
 
             // 9. เปิด follow script คืน
             if (playerCameraFollow != null)
             {
                 playerCameraFollow.ResetLockToTarget();
+
+                // [FIX] ใช้ TeleportToTarget แทนการตั้งค่า position โดยตรง
+                Vector3 newTargetPos = player.transform.position;
+                playerCameraFollow.TeleportToTarget(newTargetPos); // กล้องจะ Clamping ตำแหน่งทันที
+
                 playerCameraFollow.enabled = true; // เปิดการติดตามผู้เล่น
             }
         }

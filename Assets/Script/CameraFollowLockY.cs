@@ -8,7 +8,7 @@ public class CameraFollowLockY : MonoBehaviour
     public float smoothSpeed = 0.125f;
 
     [Header("Lock Y Settings")]
-    public float minY = -2f;
+    public float minY = 4f;
     public float maxY = 5f;
 
     [Header("Boss Lock")]
@@ -88,6 +88,7 @@ public class CameraFollowLockY : MonoBehaviour
     }
     // --------------------------------------------------
 
+    // ฟังก์ชันที่ใช้ในการย้ายกล้องทันที (สำคัญในการแก้ไขปัญหานี้)
     public void TeleportToTarget(Vector3 newTargetPos)
     {
         Vector3 desiredPosition = newTargetPos + offset;
@@ -106,12 +107,14 @@ public class CameraFollowLockY : MonoBehaviour
         }
     }
 
-    // ฟังก์ชันสำหรับรีเซ็ตกล้องหลังจบบอส (ที่เราเพิ่มกันไปก่อนหน้านี้)
+    // ฟังก์ชันสำหรับรีเซ็ตกล้องหลังจบบอส (แก้ไขเพื่อรีเซ็ต lockLeft ด้วย)
     public void ResetLockToTarget()
     {
         if (target != null)
         {
+            // [FIX] รีเซ็ต maxX และ lockLeft ให้เท่ากับตำแหน่งผู้เล่นปัจจุบัน
             maxX = target.position.x + offset.x;
+            lockLeft = target.position.x + offset.x;
         }
     }
 }
