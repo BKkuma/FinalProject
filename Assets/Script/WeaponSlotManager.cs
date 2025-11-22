@@ -6,7 +6,7 @@ public class WeaponSlotManager : MonoBehaviour
     public int currentSlot = 0;
     public PlayerShooting playerShooting;
 
-    void Start() => ApplySlotToShooting(false);
+    void Start() => ApplySlotToShooting(); // แก้ไข: ลบ (false) ออก
 
     void Update()
     {
@@ -20,12 +20,12 @@ public class WeaponSlotManager : MonoBehaviour
     {
         if (newSlot < 0 || newSlot >= slots.Length) return;
         currentSlot = newSlot;
-        ApplySlotToShooting(false); // แค่สลับปืน ไม่เติม ammo
+        ApplySlotToShooting(); // แก้ไข: ลบ (false) ออก
     }
 
     public void AddWeaponToSlot(string weaponName, int ammo, GameObject bulletPrefab)
     {
-        // เพิ่ม ammo ถ้ามี slot เดิม
+        // เพิ่ม ammo ถ้ามี slot เดิม (และ WeaponSlotManager จะอัปเดตค่า ammo ใน PlayerShooting โดยตรง)
         for (int i = 1; i < slots.Length; i++)
         {
             if (slots[i].isUnlocked && slots[i].weaponName == weaponName)
@@ -60,19 +60,22 @@ public class WeaponSlotManager : MonoBehaviour
                 slots[i].ammo = ammo;
                 slots[i].bulletPrefab = bulletPrefab;
 
-                // ถ้า slot นี้เป็น currentSlot ให้ switch ammo ให้ PlayerShooting
+                // ถ้า slot นี้เป็น currentSlot ให้ switch ไปใช้ปืนนี้ทันที
                 if (i == currentSlot)
                 {
                     switch (weaponName)
                     {
                         case "MachineGun":
-                            playerShooting.SwitchToMachineGun(bulletPrefab, ammo);
+                            // แก้ไข: ลบ Argument ที่สอง (ammo)
+                            playerShooting.SwitchToMachineGun(bulletPrefab);
                             break;
                         case "Shotgun":
-                            playerShooting.SwitchToShotgun(bulletPrefab, ammo);
+                            // แก้ไข: ลบ Argument ที่สอง (ammo)
+                            playerShooting.SwitchToShotgun(bulletPrefab);
                             break;
                         case "HomingGun":
-                            playerShooting.SwitchToHomingGun(bulletPrefab, ammo);
+                            // แก้ไข: ลบ Argument ที่สอง (ammo)
+                            playerShooting.SwitchToHomingGun(bulletPrefab);
                             break;
                     }
                 }
@@ -82,8 +85,7 @@ public class WeaponSlotManager : MonoBehaviour
     }
 
 
-
-    void ApplySlotToShooting(bool addAmmo = true)
+    void ApplySlotToShooting() // แก้ไข: ลบ Argument 'bool addAmmo'
     {
         var slot = slots[currentSlot];
 
@@ -96,13 +98,16 @@ public class WeaponSlotManager : MonoBehaviour
         switch (slot.weaponName)
         {
             case "MachineGun":
-                playerShooting.SwitchToMachineGun(slot.bulletPrefab, addAmmo ? slot.ammo : 0);
+                // แก้ไข: ลบ Argument ที่สอง
+                playerShooting.SwitchToMachineGun(slot.bulletPrefab);
                 break;
             case "Shotgun":
-                playerShooting.SwitchToShotgun(slot.bulletPrefab, addAmmo ? slot.ammo : 0);
+                // แก้ไข: ลบ Argument ที่สอง
+                playerShooting.SwitchToShotgun(slot.bulletPrefab);
                 break;
             case "HomingGun":
-                playerShooting.SwitchToHomingGun(slot.bulletPrefab, addAmmo ? slot.ammo : 0);
+                // แก้ไข: ลบ Argument ที่สอง
+                playerShooting.SwitchToHomingGun(slot.bulletPrefab);
                 break;
         }
     }

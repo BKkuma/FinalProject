@@ -1,4 +1,6 @@
 ﻿using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
 
 public class PlayerShooting : MonoBehaviour
 {
@@ -43,6 +45,13 @@ public class PlayerShooting : MonoBehaviour
     public AudioClip shotgunSound;
     public AudioClip homingGunSound;
     public AudioClip ammoEmptySound;
+
+    [Header("Switch/Pickup Sounds")]
+    public AudioClip machineGunPickupSound;
+    public AudioClip shotgunPickupSound;
+    public AudioClip homingGunPickupSound;
+    public AudioClip switchSound;
+
     private AudioSource audioSource;
 
     void Start()
@@ -59,7 +68,6 @@ public class PlayerShooting : MonoBehaviour
 
     void HandleShoot()
     {
-        // ตัวแปรสำหรับเก็บว่าปืนพิเศษถูกกดแต่กระสุนหมดหรือไม่
         bool isSpecialGunEmpty = false;
 
         if (Input.GetKey(KeyCode.K))
@@ -87,7 +95,7 @@ public class PlayerShooting : MonoBehaviour
                         audioSource.loop = false;
                         isMachineGunFiring = false;
                     }
-                    isSpecialGunEmpty = true; // ตั้งค่าว่าปืนพิเศษกระสุนหมด
+                    isSpecialGunEmpty = true;
                 }
             }
 
@@ -97,7 +105,6 @@ public class PlayerShooting : MonoBehaviour
                 Transform shootPoint = GetShootPoint();
                 Vector2 direction = playerMove.ShootDirection;
 
-                // ตรวจสอบกระสุนหมดของ Shotgun และ Homing ก่อน
                 if (usingShotgun && shotgunAmmo <= 0)
                 {
                     isSpecialGunEmpty = true;
@@ -107,17 +114,14 @@ public class PlayerShooting : MonoBehaviour
                     isSpecialGunEmpty = true;
                 }
 
-                // ถ้าปืนพิเศษกระสุนหมด และไม่ใช่ Machine Gun ที่เพิ่งจัดการเสียงไปแล้ว
                 if (isSpecialGunEmpty)
                 {
-                    // เล่นเสียงกระสุนหมด
-                    if (ammoEmptySound != null && audioSource.clip != ammoEmptySound) // ตรวจสอบไม่ให้เล่นซ้ำถ้ายังคงกดค้าง
+                    if (ammoEmptySound != null && audioSource.clip != ammoEmptySound)
                     {
                         PlayGunSound(ammoEmptySound);
-                        nextFireTime = Time.time + normalFireRate; // ใส่ delay เพื่อไม่ให้ spam เสียง
+                        nextFireTime = Time.time + normalFireRate;
                     }
                 }
-                // ------------------ Logic ยิงปืนพิเศษ & Normal (เหมือนเดิม) ------------------
                 else if (usingShotgun && shotgunAmmo > 0)
                 {
                     ShootShotgun(shootPoint, direction, 10f);
@@ -146,7 +150,6 @@ public class PlayerShooting : MonoBehaviour
                 }
             }
         }
-        // ------------------ Input.GetKey(KeyCode.K) คือ else block ------------------
         else
         {
             if (isMachineGunFiring)
@@ -188,7 +191,6 @@ public class PlayerShooting : MonoBehaviour
 
         GameObject bullet = Instantiate(bulletPrefab, shootPoint.position, Quaternion.identity);
 
-        // ตรวจสอบว่า bullet เป็น MachineGunBullet
         MachineGunBullet mgBullet = bullet.GetComponent<MachineGunBullet>();
         if (mgBullet != null)
         {
@@ -197,14 +199,13 @@ public class PlayerShooting : MonoBehaviour
         }
         else
         {
-            // 🎯 ตรวจสอบ HomingBullet
             HomingBullet hBullet = bullet.GetComponent<HomingBullet>();
             if (hBullet != null)
             {
                 hBullet.speed = speed;
-                hBullet.Initialize(direction); // ส่งทิศทางเริ่มต้น
+                hBullet.Initialize(direction);
             }
-            else // ถ้าไม่ใช่ปืนพิเศษ ก็ยิงตรงแบบปกติ
+            else
             {
                 Rigidbody2D rb = bullet.GetComponent<Rigidbody2D>();
                 if (rb != null) rb.velocity = direction.normalized * speed;
@@ -254,36 +255,81 @@ public class PlayerShooting : MonoBehaviour
         audioSource.PlayOneShot(clip);
     }
 
-    // -------------------- Switch weapons (ไม่เติม ammo เวลาสลับ) --------------------
-    public void SwitchToMachineGun(GameObject newBulletPrefab, int ammoToAdd = 0)
+    // -------------------- NEW: ฟังก์ชันสำหรับเก็บปืน/เติมกระสุน --------------------
+    public void PickupAmmo(string gunType, int ammoToAdd)
     {
+        AudioClip pickupSound = null;
+
+        switch (gunType)
+        {
+            case "MachineGun":
+                machineGunAmmo += ammoToAdd;
+                pickupSound = machineGunPickupSound;
+                break;
+            case "Shotgun":
+                shotgunAmmo += ammoToAdd;
+                pickupSound = shotgunPickupSound;
+                break;
+            case "HomingGun":
+                homingAmmo += ammoToAdd;
+                pickupSound = homingGunPickupSound;
+                break;
+            default:
+                Debug.LogWarning("Unknown gun type in PickupAmmo: " + gunType);
+                return;
+        }
+
+        if (pickupSound != null)
+        {
+            // เล่นเสียงเก็บปืน/เสียงพูด
+            audioSource.PlayOneShot(pickupSound);
+            Debug.Log($"Played Pickup Sound for {gunType}");
+        }
+        else
+        {
+            Debug.LogWarning($"Pickup Sound for {gunType} is missing!");
+        }
+    }
+
+
+    // -------------------- Switch weapons (ใช้สำหรับสลับปืนเท่านั้น) --------------------
+    public void SwitchToMachineGun(GameObject newBulletPrefab)
+    {
+        if (!usingMachineGun) PlayGunSound(switchSound);
+
         usingMachineGun = true;
         usingShotgun = false;
         usingHoming = false;
         currentBulletPrefab = newBulletPrefab;
-        if (ammoToAdd > 0) machineGunAmmo += ammoToAdd;
     }
 
-    public void SwitchToShotgun(GameObject newBulletPrefab, int ammoToAdd = 0)
+    public void SwitchToShotgun(GameObject newBulletPrefab)
     {
+        if (!usingShotgun) PlayGunSound(switchSound);
+
         usingShotgun = true;
         usingMachineGun = false;
         usingHoming = false;
         currentBulletPrefab = newBulletPrefab;
-        if (ammoToAdd > 0) shotgunAmmo += ammoToAdd;
     }
 
-    public void SwitchToHomingGun(GameObject newBulletPrefab, int ammoToAdd = 0)
+    public void SwitchToHomingGun(GameObject newBulletPrefab)
     {
+        if (!usingHoming) PlayGunSound(switchSound);
+
         usingHoming = true;
         usingMachineGun = false;
         usingShotgun = false;
         currentBulletPrefab = newBulletPrefab;
-        if (ammoToAdd > 0) homingAmmo += ammoToAdd;
     }
 
     public void SwitchToNormalGun()
     {
+        if (usingMachineGun || usingShotgun || usingHoming)
+        {
+            PlayGunSound(switchSound);
+        }
+
         usingMachineGun = false;
         usingShotgun = false;
         usingHoming = false;

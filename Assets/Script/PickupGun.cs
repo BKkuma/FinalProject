@@ -12,20 +12,37 @@ public class PickupGun : MonoBehaviour
     {
         if (!other.CompareTag("Player")) return;
 
+        PlayerShooting playerShooting = other.GetComponent<PlayerShooting>();
         WeaponSlotManager slotManager = other.GetComponent<WeaponSlotManager>();
-        if (slotManager == null) return;
 
+        if (playerShooting == null && slotManager == null) return;
+
+        string gunName = "";
         switch (gunType)
         {
             case GunType.MachineGun:
-                slotManager.AddWeaponToSlot("MachineGun", ammoAmount, bulletPrefab);
+                gunName = "MachineGun";
                 break;
             case GunType.Shotgun:
-                slotManager.AddWeaponToSlot("Shotgun", ammoAmount, bulletPrefab);
+                gunName = "Shotgun";
                 break;
             case GunType.Homing:
-                slotManager.AddWeaponToSlot("HomingGun", ammoAmount, bulletPrefab);
+                gunName = "HomingGun";
                 break;
+        }
+
+        // 1. เพิ่มกระสุนและเล่นเสียงเก็บปืน/เสียงพูด (สำคัญ: เรียก PickupAmmo)
+        if (playerShooting != null)
+        {
+            playerShooting.PickupAmmo(gunName, ammoAmount);
+        }
+
+        // 2. หากมี WeaponSlotManager: 
+        if (slotManager != null)
+        {
+            // Note: ถ้าคุณใช้ slotManager คุณอาจต้องแน่ใจว่า slotManager 
+            // ไม่ได้เรียก PlayerShooting.SwitchTo...Gun() ซ้ำ
+            slotManager.AddWeaponToSlot(gunName, ammoAmount, bulletPrefab);
         }
 
         Destroy(gameObject);
