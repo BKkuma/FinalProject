@@ -9,13 +9,17 @@ public class PlayerHealth : MonoBehaviour
 
     [Header("Respawn Settings")]
     public Transform respawnPoint;
-    public float respawnInvincibleTime = 5f;
+    public float respawnInvincibleTime = 3f; // ระยะเวลาอมตะหลังเกิด
     public int autoRespawnLives = 3;
 
     [Header("Laser Landing Effect")]
-    [Tooltip("Prefab ของลำแสงที่ Instatiate ออกมา (ลำแสงต้องหายไปเองเมื่อเวลาผ่านไป)")]
+    [Tooltip("Prefab ของลำแสงที่ Instatiate ออกมา")]
     public GameObject laserLandingPrefab;
-    [Tooltip("ระยะเวลาตั้งแต่ลำแสงเริ่มจนกระทั่งตัวละครโผล่ออกมา (ควรเท่ากับเวลาที่ลำแสงหายไป)")]
+
+    [Tooltip("ปรับตำแหน่ง Effect ลำแสง (X, Y, Z) เช่น Y=1 เพื่อให้สูงขึ้น")]
+    public Vector3 laserSpawnOffset;
+
+    [Tooltip("ระยะเวลาตั้งแต่ลำแสงเริ่มจนกระทั่งตัวละครโผล่ออกมา")]
     public float laserEffectDuration = 1.5f;
     [Tooltip("ระยะเวลาที่ Animation ท่าจบ (Player_landing) เล่น")]
     public float playerLandingDuration = 0.5f;
@@ -38,7 +42,7 @@ public class PlayerHealth : MonoBehaviour
     {
         if (gameOverUI != null) gameOverUI.SetActive(false);
 
-        // เก็บ Reference Components ที่จำเป็น
+        // เก็บ Reference Components
         playerSpriteRenderer = GetComponent<SpriteRenderer>();
         playerMovement = GetComponent<PlayerMovement>();
         boxCollider = GetComponent<BoxCollider2D>();
@@ -46,7 +50,7 @@ public class PlayerHealth : MonoBehaviour
         audioSource = GetComponent<AudioSource>();
         if (audioSource == null) audioSource = gameObject.AddComponent<AudioSource>();
 
-        // เล่น Landing Sequence ตอนเริ่มเกม
+        // เริ่ม sequence การเกิดตอนเริ่มเกม
         StartCoroutine(PlayLandingSequenceAtSpawn());
     }
 
@@ -60,7 +64,7 @@ public class PlayerHealth : MonoBehaviour
     {
         isDead = true;
 
-        // ⭐ แก้ไข: ล็อคการควบคุมด้วย isLocked
+        // ล็อคการควบคุมทันทีที่ตาย
         if (playerMovement != null) playerMovement.isLocked = true;
 
         if (usedLives < autoRespawnLives)
@@ -79,10 +83,7 @@ public class PlayerHealth : MonoBehaviour
     public bool RestoreLives(int amount)
     {
         int remainingLives = autoRespawnLives - usedLives;
-        if (remainingLives >= autoRespawnLives)
-        {
-            return false;
-        }
+        if (remainingLives >= autoRespawnLives) return false;
         usedLives = Mathf.Max(0, usedLives - amount);
         return true;
     }
@@ -94,78 +95,72 @@ public class PlayerHealth : MonoBehaviour
         // ย้ายไปจุด respawn
         transform.position = respawnPoint.position + Vector3.up * 3f;
 
-        // ⭐ แก้ไข: เปิด PlayerMovement ทันทีเพื่อให้ฟิสิกส์ทำงาน (ตัวละครเริ่มร่วง)
+        // เปิด PlayerMovement เพื่อให้ฟิสิกส์ทำงาน (ตัวละครร่วงลงมา)
         if (playerMovement != null) playerMovement.enabled = true;
 
-        // เล่น Landing Sequence
+        // เริ่ม Sequence การเกิด
         StartCoroutine(PlayLandingSequenceAtSpawn());
 
-        // โหมดอมตะชั่วคราว
-        StartCoroutine(RespawnInvincible());
+        // หมายเหตุ: เอา StartCoroutine(RespawnInvincible()) ออกจากตรงนี้ 
+        // เพื่อไปเริ่มตอนตัวละครโผล่มาแทน
     }
 
     IEnumerator PlayLandingSequenceAtSpawn()
     {
-        // A. ⭐ ลำดับที่ 1: ซ่อนตัวละครและแสดงลำแสง ⭐
-
-        // ⭐ NEW: ล็อคการรับ Input ทันทีเพื่อไม่ให้ผู้เล่นขยับขณะร่วง ⭐
+        // 1. ล็อคการรับ Input (ห้ามเดิน/กระโดด)
         if (playerMovement != null) playerMovement.isLocked = true;
 
-        // A1. รอให้ player ตกลงจาก RespawnPoint ถึงตำแหน่งที่ลำแสงควรเริ่ม
+        // รอให้ตัวละครร่วงลงมาสักพัก
         yield return new WaitForSeconds(0.25f);
 
-        // A2. ซ่อนโมเดลตัวละครหลัก
+        // 2. ซ่อนตัวละคร (หายตัว)
         if (playerSpriteRenderer != null)
             playerSpriteRenderer.enabled = false;
 
-        // A3. Instantiate ลำแสง
+        // 3. สร้างแสงเลเซอร์
         if (laserLandingPrefab != null)
         {
             Vector3 effectPosition = transform.position;
+
+            // หาตำแหน่งเท้า
             if (boxCollider != null)
-            {
                 effectPosition = transform.position + new Vector3(0, -boxCollider.size.y / 2f, 0);
-            }
+
+            // บวกค่า Offset
+            effectPosition += laserSpawnOffset;
 
             GameObject laserEffect = Instantiate(laserLandingPrefab, effectPosition, Quaternion.identity);
-
             Destroy(laserEffect, laserEffectDuration);
         }
 
-        // B. ⭐ ลำดับที่ 2: รอให้ลำแสงหายไปจนหมด ⭐
+        // 4. รอให้เลเซอร์แสดงผลจนจบ
         yield return new WaitForSeconds(laserEffectDuration);
 
-        // C. ⭐ ลำดับที่ 3: แสดงตัวละครและเล่นท่าจบ ⭐
-
-        // C1. แสดงโมเดลตัวละครหลัก
+        // 5. เลเซอร์จบ -> แสดงตัวละคร (โผล่มา)
         if (playerSpriteRenderer != null)
             playerSpriteRenderer.enabled = true;
 
-        // C2. เล่น Animation ท่าจบ (Player_landing)
+        // ⭐ เริ่มกระพริบอมตะ "หลังจาก" ตัวละครโผล่มาแล้ว ⭐
+        StartCoroutine(RespawnInvincible());
+
+        // เล่น Animation ท่าจบ (Landing)
         if (animator != null)
-            // ใช้ SetTrigger "Landing"
             animator.SetTrigger("Landing");
 
-        // C3. เล่นเสียง
+        // เล่นเสียง
         if (audioSource != null && landingSFX != null)
             audioSource.PlayOneShot(landingSFX);
 
-        // D. ⭐ ลำดับที่ 4: รอให้ Animation ท่าจบเล่นจนเสร็จ ⭐
+        // 6. รอท่าจบเล่นเสร็จ
         yield return new WaitForSeconds(playerLandingDuration);
 
-        // E. ปลดล็อคการควบคุม
-
-        // ⭐ NEW: สั่งให้ Animator กลับไป Idle ทันที ⭐
+        // 7. จบ Sequence -> กลับไปท่า Idle และปลดล็อคการควบคุม
         if (animator != null)
             animator.SetTrigger("EndLanding");
 
         if (playerMovement != null)
-        {
-            // ปลดล็อคการรับ Input 
             playerMovement.isLocked = false;
-        }
     }
-
 
     IEnumerator RespawnInvincible()
     {
@@ -174,14 +169,16 @@ public class PlayerHealth : MonoBehaviour
 
         while (timer > 0)
         {
-            // ตรวจสอบว่า SpriteRenderer ถูกเปิดใช้งาน
-            if (playerSpriteRenderer != null && playerSpriteRenderer.enabled)
+            // สลับเปิด/ปิด Sprite (กระพริบ)
+            if (playerSpriteRenderer != null)
                 playerSpriteRenderer.enabled = !playerSpriteRenderer.enabled;
 
-            yield return new WaitForSeconds(0.2f);
-            timer -= 0.2f;
+            // ความเร็วกระพริบ (ยิ่งน้อยยิ่งรัว)
+            yield return new WaitForSeconds(0.1f);
+            timer -= 0.1f;
         }
 
+        // จบอมตะ: บังคับเปิด Sprite ให้เห็นตัวแน่นอน
         if (playerSpriteRenderer != null)
             playerSpriteRenderer.enabled = true;
 

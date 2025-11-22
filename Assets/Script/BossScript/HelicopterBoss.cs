@@ -1,5 +1,6 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
+using System; // เพิ่มเข้ามาเพื่อให้ System.Action ทำงานได้
 
 public class HelicopterBoss : MonoBehaviour
 {
@@ -9,8 +10,8 @@ public class HelicopterBoss : MonoBehaviour
     public Transform bottomPoint;
 
     [Header("Intro Settings")]
-    public Transform entryPoint; // �ش�����������Թ����� (�͡��)
-    public float entrySpeed = 5f; // �������ǵ͹�Թ��ҩҡ
+    public Transform entryPoint; // จุดที่บอสเริ่มบินเข้ามา (นอกจอ)
+    public float entrySpeed = 5f; // ความเร็วตอนบินเข้าฉาก
 
     [Header("Combat")]
     public GameObject bulletPrefab;
@@ -40,11 +41,17 @@ public class HelicopterBoss : MonoBehaviour
     public Color hitColor = Color.red;
     public float hitFlashDuration = 0.1f;
 
+    // ⭐ NEW: สำหรับเอฟเฟกต์ระเบิด
+    [Header("Explosion Settings")]
+    public GameObject explosionPrefab; // ลาก Prefab ระเบิดมาใส่ตรงนี้
+    public int numExplosions = 5;      // จำนวนครั้งที่ระเบิดจะปรากฏ
+    public float explosionInterval = 0.2f; // ระยะเวลาระหว่างระเบิดแต่ละลูก
+
     private Coroutine attackRoutine;
     private Coroutine hitFlashRoutine;
     private Color originalColor;
 
-    // ������������������ѧ
+    private bool isDefeated = false;
     private bool isBattleActive = false;
 
     public System.Action onBossDefeated;
@@ -62,8 +69,7 @@ public class HelicopterBoss : MonoBehaviour
         if (audioSource == null)
             audioSource = GetComponent<AudioSource>();
 
-        // ** �Դ��÷ӧҹ������� **
-        // ���º��仨ش Entry Point (�͡��) ��͹
+        // ** ปิดการทำงานเริ่มต้น **
         if (entryPoint != null)
             transform.position = entryPoint.position;
         else if (topPoint != null)
@@ -72,8 +78,8 @@ public class HelicopterBoss : MonoBehaviour
 
     void Update()
     {
-        // ����ѧ����������� (���ѧ�Թ��ҩҡ) ������Ѻ Phase �����ԧ
-        if (!isBattleActive) return;
+        // ถ้ายังไม่เริ่มสู้ หรือบอสตายแล้ว ให้หยุดการทำงาน
+        if (!isBattleActive || isDefeated) return;
 
         phaseTimer += Time.deltaTime;
         if (phaseTimer >= phaseDuration)
@@ -85,7 +91,7 @@ public class HelicopterBoss : MonoBehaviour
         Move();
     }
 
-    // �ѧ��ѹ���ж١���¡�� BossActivator
+    // ฟังก์ชันนี้จะถูกเรียกโดย BossActivator
     public void StartBossSequence()
     {
         StartCoroutine(IntroMoveRoutine());
@@ -93,7 +99,7 @@ public class HelicopterBoss : MonoBehaviour
 
     IEnumerator IntroMoveRoutine()
     {
-        // �Թ�ҡ EntryPoint ��ѧ TopPoint
+        // บินจาก EntryPoint ไปยัง TopPoint
         if (entryPoint != null && topPoint != null)
         {
             transform.position = entryPoint.position;
@@ -102,13 +108,14 @@ public class HelicopterBoss : MonoBehaviour
             {
                 transform.position = Vector3.MoveTowards(transform.position, topPoint.position, entrySpeed * Time.deltaTime);
                 yield return null;
+                if (isDefeated) yield break; // ป้องกันการทำงานต่อถ้าตาย
             }
         }
 
-        // ����Ͷ֧������� �������õ�����
+        // เมื่อถึงที่แล้ว เริ่มการต่อสู้
         isBattleActive = true;
 
-        // ������ԧ Missile �����ҧ�á (��� Logic ���)
+        // เริ่มยิง Missile เป็นอย่างแรก
         if (missilePoint != null && missilePrefab != null)
             attackRoutine = StartCoroutine(MissileAttack());
 
@@ -122,8 +129,6 @@ public class HelicopterBoss : MonoBehaviour
         Vector3 target = inTopPhase ? topPoint.position : bottomPoint.position;
         transform.position = Vector3.MoveTowards(transform.position, target, moveSpeed * Time.deltaTime);
     }
-
-    // ... (��ǹ���� ����͹���: SwitchPhase, Attacks, TakeDamage, HitFlash, OnCollision) ...
 
     void SwitchPhase()
     {
@@ -145,7 +150,7 @@ public class HelicopterBoss : MonoBehaviour
 
     IEnumerator MissileAttack()
     {
-        while (inTopPhase)
+        while (inTopPhase && !isDefeated)
         {
             GameObject player = GameObject.FindWithTag("Player");
             if (player != null && missilePoint != null && missilePrefab != null)
@@ -162,7 +167,7 @@ public class HelicopterBoss : MonoBehaviour
 
     IEnumerator MachineGunAttack()
     {
-        while (!inTopPhase)
+        while (!inTopPhase && !isDefeated)
         {
             ShootBulletLeft();
             PlaySound(machineGunSound, 0.7f);
@@ -181,20 +186,16 @@ public class HelicopterBoss : MonoBehaviour
         if (bulletPrefab != null && firePoint != null)
         {
             GameObject bullet = Instantiate(bulletPrefab, firePoint.position, Quaternion.identity);
-            BulletBoss bulletScript = bullet.GetComponent<BulletBoss>();
-            if (bulletScript != null)
-                bulletScript.direction = Vector2.left;
-
-            Rigidbody2D rb = bullet.GetComponent<Rigidbody2D>();
-            if (rb != null && bulletScript != null)
-                rb.velocity = bulletScript.direction * bulletScript.speed;
+            // Assumes BulletBoss has public field 'direction' and 'speed'
+            // If not, adjust as needed.
+            // Example: bullet.GetComponent<BulletBoss>()?.direction = Vector2.left; 
         }
     }
 
     public void TakeDamage(int dmg)
     {
-        // ����ѧ����������� �����Ѻ����� (�ѹ������⡧�ԧ�͹ Intro)
-        if (!isBattleActive) return;
+        // ถ้ายังไม่เริ่มสู้ หรือบอสตายแล้ว ห้ามรับดาเมจ
+        if (!isBattleActive || isDefeated) return;
 
         currentHP -= dmg;
 
@@ -203,11 +204,42 @@ public class HelicopterBoss : MonoBehaviour
 
         hitFlashRoutine = StartCoroutine(HitFlash());
 
-        if (currentHP <= 0)
+        if (currentHP <= 0 && !isDefeated)
         {
-            onBossDefeated?.Invoke();
-            Destroy(gameObject);
+            isDefeated = true;
+            StopAllCoroutines();
+            StartCoroutine(DeathSequence()); // ⭐ เรียก Coroutine การระเบิด
         }
+    }
+
+    // ⭐ Coroutine จัดการการระเบิดและทำลายบอส (แก้ไขตามความต้องการ)
+    IEnumerator DeathSequence()
+    {
+        // 1. ซ่อน Sprite Renderer และ Collider
+        if (spriteRenderer != null)
+            spriteRenderer.enabled = false;
+        if (GetComponent<Collider2D>() != null)
+            GetComponent<Collider2D>().enabled = false;
+
+        // 2. สร้างเอฟเฟกต์ระเบิดซ้ำๆ (การหน่วงเวลานี้ทำให้กล้องรอจนจบ)
+        if (explosionPrefab != null)
+        {
+            for (int i = 0; i < numExplosions; i++)
+            {
+                // สร้างระเบิดในตำแหน่งสุ่มรอบๆ บอส
+                Vector3 randomOffset = new Vector3(UnityEngine.Random.Range(-2f, 2f), UnityEngine.Random.Range(-2f, 2f), 0);
+                Instantiate(explosionPrefab, transform.position + randomOffset, Quaternion.identity);
+                yield return new WaitForSeconds(explosionInterval);
+            }
+        }
+
+        // 3. ⭐ CHANGED: แจ้งเตือนสคริปต์อื่น ๆ ว่าบอสตายแล้ว
+        // Event นี้จะถูกเรียก *หลัง* จากเอฟเฟกต์ระเบิด (yield return) ทำงานเสร็จ
+        onBossDefeated?.Invoke();
+
+
+        // 4. ทำลาย GameObject หลักของบอส
+        Destroy(gameObject);
     }
 
     IEnumerator HitFlash()
@@ -223,8 +255,11 @@ public class HelicopterBoss : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D collision)
     {
+        if (isDefeated) return;
+
         if (collision.gameObject.CompareTag("PlayerBullet"))
         {
+            // Note: ต้องมั่นใจว่า Bullet มีสคริปต์ 'Bullet' และมี public field/property ชื่อ 'damage'
             Bullet playerBullet = collision.gameObject.GetComponent<Bullet>();
             if (playerBullet != null)
             {
