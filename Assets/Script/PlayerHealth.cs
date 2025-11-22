@@ -4,6 +4,8 @@ using System.Collections;
 
 public class PlayerHealth : MonoBehaviour
 {
+    // 🔴 ลบ: maxHealth และ currentHealth ออกไป
+
     [Header("UI")]
     public GameObject gameOverUI;
 
@@ -40,6 +42,8 @@ public class PlayerHealth : MonoBehaviour
 
     void Start()
     {
+        // 🔴 ลบ: currentHealth = maxHealth; ออกไป
+
         if (gameOverUI != null) gameOverUI.SetActive(false);
 
         // เก็บ Reference Components
@@ -50,22 +54,34 @@ public class PlayerHealth : MonoBehaviour
         audioSource = GetComponent<AudioSource>();
         if (audioSource == null) audioSource = gameObject.AddComponent<AudioSource>();
 
+
         // เริ่ม sequence การเกิดตอนเริ่มเกม
         StartCoroutine(PlayLandingSequenceAtSpawn());
     }
 
-    public void TakeDamage(int dmg)
+    // ⭐ MODIFIED: รับค่า float แต่ไม่ใช้ และเรียก Die() ทันที ⭐
+    public void TakeDamage(float dmg)
     {
         if (isDead || isInvincible) return;
+
+        // ไม่ว่าดาเมจจะเป็นเท่าไหร่ (dmg) ก็ตายทันที
+        Debug.Log(gameObject.name + " was hit and instantly defeated.");
         Die();
     }
 
     void Die()
     {
+        if (isDead) return; // ป้องกันการเรียกซ้ำ
+
         isDead = true;
+        // 🔴 ลบ: currentHealth = 0; ออกไป
 
         // ล็อคการควบคุมทันทีที่ตาย
         if (playerMovement != null) playerMovement.isLocked = true;
+
+        // หยุด Coroutine อมตะที่อาจยังทำงานอยู่
+        StopCoroutine(RespawnInvincible());
+        if (playerSpriteRenderer != null) playerSpriteRenderer.enabled = true; // ให้เห็นตัวชัดๆ ตอนตาย
 
         if (usedLives < autoRespawnLives)
         {
@@ -74,6 +90,7 @@ public class PlayerHealth : MonoBehaviour
         }
         else
         {
+            Debug.Log("Game Over! All lives used.");
             if (gameOverUI != null)
                 gameOverUI.SetActive(true);
         }
@@ -83,17 +100,29 @@ public class PlayerHealth : MonoBehaviour
     public bool RestoreLives(int amount)
     {
         int remainingLives = autoRespawnLives - usedLives;
-        if (remainingLives >= autoRespawnLives) return false;
+        if (remainingLives <= 0) return false;
+
         usedLives = Mathf.Max(0, usedLives - amount);
+
+        // NEW: หากตายอยู่ ให้ Respawn ทันทีเมื่อได้ Life คืนและยังมี Life เหลือ
+        if (isDead && usedLives < autoRespawnLives)
+        {
+            Respawn();
+        }
         return true;
     }
 
     void Respawn()
     {
+        // รีเซ็ตสถานะ
         isDead = false;
+        // 🔴 ลบ: currentHealth = maxHealth; ออกไป
 
         // ย้ายไปจุด respawn
-        transform.position = respawnPoint.position + Vector3.up * 3f;
+        if (respawnPoint != null)
+        {
+            transform.position = respawnPoint.position + Vector3.up * 3f;
+        }
 
         // เปิด PlayerMovement เพื่อให้ฟิสิกส์ทำงาน (ตัวละครร่วงลงมา)
         if (playerMovement != null) playerMovement.enabled = true;
@@ -110,7 +139,7 @@ public class PlayerHealth : MonoBehaviour
         // 1. ล็อคการรับ Input (ห้ามเดิน/กระโดด)
         if (playerMovement != null) playerMovement.isLocked = true;
 
-        // รอให้ตัวละครร่วงลงมาสักพัก
+        // รอให้ตัวละครร่วงลงมาสักพัก (เผื่อต้องร่วงลงไปแตะพื้น)
         yield return new WaitForSeconds(0.25f);
 
         // 2. ซ่อนตัวละคร (หายตัว)
@@ -122,7 +151,7 @@ public class PlayerHealth : MonoBehaviour
         {
             Vector3 effectPosition = transform.position;
 
-            // หาตำแหน่งเท้า
+            // หาตำแหน่งเท้า (Bottom of Collider)
             if (boxCollider != null)
                 effectPosition = transform.position + new Vector3(0, -boxCollider.size.y / 2f, 0);
 
