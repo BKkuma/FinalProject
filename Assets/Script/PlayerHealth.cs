@@ -12,30 +12,42 @@ public class PlayerHealth : MonoBehaviour
     public float respawnInvincibleTime = 5f;
     public int autoRespawnLives = 3;
 
-    [Header("Landing Effect")]
-    public Animator animator;
-    public GameObject landingEffectPrefab;
+    [Header("Laser Landing Effect")]
+    [Tooltip("Prefab ของลำแสงที่ Instatiate ออกมา (ลำแสงต้องหายไปเองเมื่อเวลาผ่านไป)")]
+    public GameObject laserLandingPrefab;
+    [Tooltip("ระยะเวลาตั้งแต่ลำแสงเริ่มจนกระทั่งตัวละครโผล่ออกมา (ควรเท่ากับเวลาที่ลำแสงหายไป)")]
+    public float laserEffectDuration = 1.5f;
+    [Tooltip("ระยะเวลาที่ Animation ท่าจบ (Player_landing) เล่น")]
+    public float playerLandingDuration = 0.5f;
 
     [Header("Landing Sound")]
     public AudioClip landingSFX;
-    private AudioSource audioSource;
 
+    public Animator animator;
+    private BoxCollider2D boxCollider;
+
+    private AudioSource audioSource;
     private bool isDead = false;
     private int usedLives = 0;
     private bool isInvincible = false;
-    private SpriteRenderer sr;
+
+    private SpriteRenderer playerSpriteRenderer;
+    private PlayerMovement playerMovement;
 
     void Start()
     {
         if (gameOverUI != null) gameOverUI.SetActive(false);
 
-        sr = GetComponent<SpriteRenderer>();
+        // เก็บ Reference Components ที่จำเป็น
+        playerSpriteRenderer = GetComponent<SpriteRenderer>();
+        playerMovement = GetComponent<PlayerMovement>();
+        boxCollider = GetComponent<BoxCollider2D>();
 
         audioSource = GetComponent<AudioSource>();
         if (audioSource == null) audioSource = gameObject.AddComponent<AudioSource>();
 
-        // เล่น Landing ตอนเริ่มเกม
-        StartCoroutine(PlayLandingEffectAtSpawn());
+        // เล่น Landing Sequence ตอนเริ่มเกม
+        StartCoroutine(PlayLandingSequenceAtSpawn());
     }
 
     public void TakeDamage(int dmg)
@@ -47,12 +59,14 @@ public class PlayerHealth : MonoBehaviour
     void Die()
     {
         isDead = true;
-        GetComponent<PlayerMovement>().enabled = false;
+
+        // ⭐ แก้ไข: ล็อคการควบคุมด้วย isLocked
+        if (playerMovement != null) playerMovement.isLocked = true;
 
         if (usedLives < autoRespawnLives)
         {
             usedLives++;
-            Invoke(nameof(Respawn), 0.0f);
+            Respawn();
         }
         else
         {
@@ -64,23 +78,13 @@ public class PlayerHealth : MonoBehaviour
     public int UsedLives => usedLives;
     public bool RestoreLives(int amount)
     {
-        // คำนวณชีวิตที่เหลือ (0 คือเต็ม)
         int remainingLives = autoRespawnLives - usedLives;
-
-        // ตรวจสอบว่าชีวิตเต็มแล้วหรือไม่
         if (remainingLives >= autoRespawnLives)
         {
-            // ชีวิตเต็ม ไม่ต้องเพิ่ม
             return false;
         }
-
-        // เพิ่มจำนวนชีวิตที่ใช้ไป (ลดจำนวนชีวิตที่เสียไป)
-        // ใช้ Mathf.Max เพื่อไม่ให้ usedLives ติดลบ
         usedLives = Mathf.Max(0, usedLives - amount);
-
-        // ** ตัวเลือกเสริม: อาจจะเรียก UI Update ทันทีที่นี่ถ้ามี **
-
-        return true; // สำเร็จในการเพิ่มชีวิต
+        return true;
     }
 
     void Respawn()
@@ -90,38 +94,76 @@ public class PlayerHealth : MonoBehaviour
         // ย้ายไปจุด respawn
         transform.position = respawnPoint.position + Vector3.up * 3f;
 
-        // ปิด movement ชั่วคราว
-        GetComponent<PlayerMovement>().enabled = false;
+        // ⭐ แก้ไข: เปิด PlayerMovement ทันทีเพื่อให้ฟิสิกส์ทำงาน (ตัวละครเริ่มร่วง)
+        if (playerMovement != null) playerMovement.enabled = true;
 
-        // เปิด movement ให้ตกลงพื้น
-        GetComponent<PlayerMovement>().enabled = true;
-
-        // เล่น Landing animation / effect / sound
-        StartCoroutine(PlayLandingEffectAtSpawn());
+        // เล่น Landing Sequence
+        StartCoroutine(PlayLandingSequenceAtSpawn());
 
         // โหมดอมตะชั่วคราว
         StartCoroutine(RespawnInvincible());
     }
 
-    IEnumerator PlayLandingEffectAtSpawn()
+    IEnumerator PlayLandingSequenceAtSpawn()
     {
-        // รอให้ player ตกลงพื้นประมาณ 0.2-0.3 วิ (ปรับตามความสูง respawn)
+        // A. ⭐ ลำดับที่ 1: ซ่อนตัวละครและแสดงลำแสง ⭐
+
+        // ⭐ NEW: ล็อคการรับ Input ทันทีเพื่อไม่ให้ผู้เล่นขยับขณะร่วง ⭐
+        if (playerMovement != null) playerMovement.isLocked = true;
+
+        // A1. รอให้ player ตกลงจาก RespawnPoint ถึงตำแหน่งที่ลำแสงควรเริ่ม
         yield return new WaitForSeconds(0.25f);
 
-        // เล่น Animation
-        if (animator != null)
-            animator.SetTrigger("Landing");
+        // A2. ซ่อนโมเดลตัวละครหลัก
+        if (playerSpriteRenderer != null)
+            playerSpriteRenderer.enabled = false;
 
-        // Spawn particle effect
-        if (landingEffectPrefab != null)
+        // A3. Instantiate ลำแสง
+        if (laserLandingPrefab != null)
         {
-            GameObject effect = Instantiate(landingEffectPrefab, transform.position, Quaternion.identity);
-            Destroy(effect, 1f);
+            Vector3 effectPosition = transform.position;
+            if (boxCollider != null)
+            {
+                effectPosition = transform.position + new Vector3(0, -boxCollider.size.y / 2f, 0);
+            }
+
+            GameObject laserEffect = Instantiate(laserLandingPrefab, effectPosition, Quaternion.identity);
+
+            Destroy(laserEffect, laserEffectDuration);
         }
 
-        // เล่นเสียง
+        // B. ⭐ ลำดับที่ 2: รอให้ลำแสงหายไปจนหมด ⭐
+        yield return new WaitForSeconds(laserEffectDuration);
+
+        // C. ⭐ ลำดับที่ 3: แสดงตัวละครและเล่นท่าจบ ⭐
+
+        // C1. แสดงโมเดลตัวละครหลัก
+        if (playerSpriteRenderer != null)
+            playerSpriteRenderer.enabled = true;
+
+        // C2. เล่น Animation ท่าจบ (Player_landing)
+        if (animator != null)
+            // ใช้ SetTrigger "Landing"
+            animator.SetTrigger("Landing");
+
+        // C3. เล่นเสียง
         if (audioSource != null && landingSFX != null)
             audioSource.PlayOneShot(landingSFX);
+
+        // D. ⭐ ลำดับที่ 4: รอให้ Animation ท่าจบเล่นจนเสร็จ ⭐
+        yield return new WaitForSeconds(playerLandingDuration);
+
+        // E. ปลดล็อคการควบคุม
+
+        // ⭐ NEW: สั่งให้ Animator กลับไป Idle ทันที ⭐
+        if (animator != null)
+            animator.SetTrigger("EndLanding");
+
+        if (playerMovement != null)
+        {
+            // ปลดล็อคการรับ Input 
+            playerMovement.isLocked = false;
+        }
     }
 
 
@@ -132,12 +174,17 @@ public class PlayerHealth : MonoBehaviour
 
         while (timer > 0)
         {
-            if (sr != null) sr.enabled = !sr.enabled;
+            // ตรวจสอบว่า SpriteRenderer ถูกเปิดใช้งาน
+            if (playerSpriteRenderer != null && playerSpriteRenderer.enabled)
+                playerSpriteRenderer.enabled = !playerSpriteRenderer.enabled;
+
             yield return new WaitForSeconds(0.2f);
             timer -= 0.2f;
         }
 
-        if (sr != null) sr.enabled = true;
+        if (playerSpriteRenderer != null)
+            playerSpriteRenderer.enabled = true;
+
         isInvincible = false;
     }
 

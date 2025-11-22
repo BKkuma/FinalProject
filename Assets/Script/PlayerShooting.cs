@@ -102,6 +102,7 @@ public class PlayerShooting : MonoBehaviour
             // ------------------ Logic การยิงจริง ------------------
             if (Time.time >= nextFireTime)
             {
+                // *** ใช้ playerMove.ShootDirection ที่ถูกกำหนดใน PlayerMovement.cs แล้ว ***
                 Transform shootPoint = GetShootPoint();
                 Vector2 direction = playerMove.ShootDirection;
 

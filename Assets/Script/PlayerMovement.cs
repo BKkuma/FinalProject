@@ -7,24 +7,36 @@ public class PlayerMovement : MonoBehaviour
     public Transform firePoint;
     public Transform crouchFirePoint;
 
+    [Header("Crouch Settings")]
+    [Range(0.1f, 1f)]
+    public float crouchHeightMultiplier = 0.8f;
+
+    [Header("Effects")]
+    public GameObject jumpEffectPrefab;
+
+    // ⭐ แก้ไข: ตัวแปรล็อคการควบคุมการรับ Input
+    [HideInInspector]
+    public bool isLocked = false;
+
     private Rigidbody2D rb;
     private Vector2 shootDirection = Vector2.right;
     private int jumpCount = 0;
     public int maxJumps = 2;
 
     private bool isCrouching = false;
-    // 🎯 ตัวแปรสถานะเพื่อตรวจสอบการเล็งในแนวตั้ง (สำหรับควบคุม Animation Priority)
     private bool isAimingVertical = false;
 
     private SpriteRenderer spriteRenderer;
-    private BoxCollider2D boxCollider; // ใช้ BoxCollider2D
+    private BoxCollider2D boxCollider;
 
     private float originalHeight;
     private Vector2 originalOffset;
     private Animator animator;
 
+    // Properties สำหรับเข้าถึงจากภายนอก
     public bool IsCrouching => isCrouching;
     public Vector2 ShootDirection => shootDirection;
+    public bool IsFacingRight => !spriteRenderer.flipX;
 
     // ----------------------------------------------------
     // Start & Update
@@ -37,19 +49,20 @@ public class PlayerMovement : MonoBehaviour
         boxCollider = GetComponent<BoxCollider2D>();
         animator = GetComponent<Animator>();
 
-        // เก็บค่าเริ่มต้นของ Box Collider ไว้
         originalHeight = boxCollider.size.y;
         originalOffset = boxCollider.offset;
+
+        shootDirection = Vector2.right;
     }
 
     void Update()
     {
-        // 🎯 1. ตรวจสอบการเล็งก่อนเสมอ เพื่อให้สถานะ isAimingVertical ถูกตั้งค่าในเฟรมปัจจุบัน
+        // ⭐ NEW: ล็อคการรับ Input ทั้งหมดถ้า isLocked เป็น true
+        if (isLocked)
+            return;
+
         AimDirection();
-
-        // 🎯 2. ตรวจสอบการเคลื่อนที่ โดยใช้สถานะการเล็งที่เพิ่งตั้งค่าไป
         Move();
-
         Jump();
         Crouch();
     }
@@ -60,13 +73,11 @@ public class PlayerMovement : MonoBehaviour
 
     void Move()
     {
-        float move = 0;
+        float moveInput = 0;
 
-        // 1. ตรวจสอบการกด D/A เพื่อกำหนดทิศทางการเคลื่อนที่
         if (Input.GetKey(KeyCode.A))
         {
-            move = -1;
-            // 🎯 กำหนดทิศทางการหันหน้า/ยิงแนวนอน เมื่อไม่มีการเล็งแนวตั้ง
+            moveInput = -1;
             if (!isAimingVertical)
             {
                 shootDirection = Vector2.left;
@@ -75,8 +86,7 @@ public class PlayerMovement : MonoBehaviour
         }
         else if (Input.GetKey(KeyCode.D))
         {
-            move = 1;
-            // 🎯 กำหนดทิศทางการหันหน้า/ยิงแนวนอน เมื่อไม่มีการเล็งแนวตั้ง
+            moveInput = 1;
             if (!isAimingVertical)
             {
                 shootDirection = Vector2.right;
@@ -84,25 +94,32 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        // Animation และการเคลื่อนที่
-        if (!isCrouching)
+        float horizontalVelocity = moveInput * moveSpeed;
+
+        if (isCrouching)
+        {
+            horizontalVelocity = 0;
+            rb.velocity = new Vector2(horizontalVelocity, rb.velocity.y);
+
+            animator.SetFloat("Speed", 0);
+            animator.SetBool("isCrouchIdle", true);
+            animator.SetBool("isCrouchWalking", false);
+        }
+        else
         {
             if (isAimingVertical)
             {
-                // 🎯 ขณะเล็งแนวตั้ง: อนุญาตให้เดิน (A/D) ได้ แต่ให้ Animation เล็งแนวตั้งมี Priority
-                rb.velocity = new Vector2(move * moveSpeed, rb.velocity.y);
-                animator.SetFloat("Speed", 0); // 🎯 ตั้งค่า Speed เป็น 0 เพื่อหยุด Animation วิ่ง
+                rb.velocity = new Vector2(horizontalVelocity, rb.velocity.y);
+                animator.SetFloat("Speed", 0);
             }
             else
             {
-                // การเคลื่อนที่ปกติ
-                rb.velocity = new Vector2(move * moveSpeed, rb.velocity.y);
-                animator.SetFloat("Speed", Mathf.Abs(move));
+                rb.velocity = new Vector2(horizontalVelocity, rb.velocity.y);
+                animator.SetFloat("Speed", Mathf.Abs(moveInput));
             }
-        }
-        else // เดินย่อตัว
-        {
-            rb.velocity = new Vector2(move * (moveSpeed * 0.5f), rb.velocity.y);
+
+            animator.SetBool("isCrouchIdle", false);
+            animator.SetBool("isCrouchWalking", false);
         }
     }
 
@@ -116,24 +133,36 @@ public class PlayerMovement : MonoBehaviour
             jumpCount++;
 
             animator.SetBool("isJumping", true);
+
+            if (jumpEffectPrefab != null)
+            {
+                Vector3 effectPosition = transform.position + new Vector3(0, -boxCollider.size.y / 2f, 0);
+                GameObject effect = Instantiate(jumpEffectPrefab, effectPosition, Quaternion.identity);
+                ParticleSystem ps = effect.GetComponent<ParticleSystem>();
+                if (ps != null)
+                {
+                    Destroy(effect, ps.main.duration);
+                }
+            }
         }
     }
 
     void AimDirection()
     {
-        isAimingVertical = false; // รีเซ็ตทุกเฟรม
+        bool aimingUp = Input.GetKey(KeyCode.W);
+        bool aimingDown = Input.GetKey(KeyCode.S);
 
-        if (Input.GetKey(KeyCode.W))
+        isAimingVertical = false;
+
+        if (aimingUp && !isCrouching)
         {
-            // W มี Priority สูงสุด: หันไปทาง W
             shootDirection = Vector2.up;
             animator.SetBool("isAimingUp", true);
             animator.SetBool("isAimingDown", false);
             isAimingVertical = true;
         }
-        else if (Input.GetKey(KeyCode.S) && !isCrouching)
+        else if (aimingDown && !isCrouching)
         {
-            // S มี Priority รองลงมา: หันไปทาง S
             shootDirection = Vector2.down;
             animator.SetBool("isAimingDown", true);
             animator.SetBool("isAimingUp", false);
@@ -141,11 +170,13 @@ public class PlayerMovement : MonoBehaviour
         }
         else
         {
-            // ถ้าไม่มีการกด W/S: รีเซ็ต Vertical Aims
             animator.SetBool("isAimingUp", false);
             animator.SetBool("isAimingDown", false);
 
-            // ❌ ไม่ต้องตั้งค่า shootDirection ตรงนี้ ให้ฟังก์ชัน Move() เป็นผู้จัดการทิศทางแนวนอน
+            if (!isAimingVertical)
+            {
+                shootDirection = IsFacingRight ? Vector2.right : Vector2.left;
+            }
         }
     }
 
@@ -154,33 +185,31 @@ public class PlayerMovement : MonoBehaviour
         // **1. CROUCH DOWN / STAY CROUCHED**
         if (Input.GetKey(KeyCode.LeftShift) && IsGrounded())
         {
-            if (!isCrouching) // ทำการปรับขนาด Collider เพียงครั้งเดียวตอนเข้าสู่สถานะย่อตัว
+            if (!isCrouching)
             {
                 isCrouching = true;
 
-                // ปรับขนาด Box Collider (50% ของความสูงเดิม)
-                float crouchHeight = originalHeight * 0.5f;
+                float crouchHeight = originalHeight * crouchHeightMultiplier;
+
                 boxCollider.size = new Vector2(boxCollider.size.x, crouchHeight);
                 boxCollider.offset = new Vector2(originalOffset.x, originalOffset.y - (originalHeight - crouchHeight) / 2f);
-            }
 
-            // อัปเดต Animation ทุกเฟรมขณะย่อ
-            animator.SetBool("isCrouchIdle", Mathf.Abs(rb.velocity.x) < 0.1f);
-            animator.SetBool("isCrouchWalking", Mathf.Abs(rb.velocity.x) >= 0.1f);
-            animator.SetFloat("Speed", 0);
+                animator.SetBool("isAimingUp", false);
+                animator.SetBool("isAimingDown", false);
+                isAimingVertical = false;
+
+                shootDirection = IsFacingRight ? Vector2.right : Vector2.left;
+            }
         }
 
         // **2. STAND UP TRIGGER (เมื่อปล่อยปุ่ม)**
         if (Input.GetKeyUp(KeyCode.LeftShift) && isCrouching)
         {
-            // ลุกขึ้น
             isCrouching = false;
 
-            // คืนค่า Collider
             boxCollider.size = new Vector2(boxCollider.size.x, originalHeight);
             boxCollider.offset = originalOffset;
 
-            // ปิด Animation Crouch
             animator.SetBool("isCrouchWalking", false);
             animator.SetBool("isCrouchIdle", false);
         }

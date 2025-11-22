@@ -905,6 +905,11 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!4 &35827239 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5383463544232666725, guid: bab9325df83c23846a0997c4208bfbb2, type: 3}
+  m_PrefabInstance: {fileID: 1237903450}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &40780161
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3111,6 +3116,8 @@ MonoBehaviour:
   jumpForce: 50
   firePoint: {fileID: 1761512637}
   crouchFirePoint: {fileID: 1152986010}
+  crouchHeightMultiplier: 0.307
+  jumpEffectPrefab: {fileID: 8205706795460263314, guid: 326e86d5729c54e479798cacab220bb2, type: 3}
   maxJumps: 2
 --- !u!212 &207591619
 SpriteRenderer:
@@ -3172,10 +3179,11 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 207591615}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 600, y: 5, z: 0}
+  m_LocalPosition: {x: 190, y: 7.512, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 35827239}
   - {fileID: 1761512637}
   - {fileID: 1152986010}
   - {fileID: 1277502066}
@@ -3221,6 +3229,8 @@ MonoBehaviour:
   respawnPoint: {fileID: 1277502066}
   respawnInvincibleTime: 5
   autoRespawnLives: 3
+  laserLandingDuration: 1
+  playerLandingDuration: 0.5
   animator: {fileID: 207591625}
   landingEffectPrefab: {fileID: 5878899126748357876, guid: bab9325df83c23846a0997c4208bfbb2, type: 3}
   landingSFX: {fileID: 8300000, guid: a235d590ef2a04d1b85b61ef4c21337c, type: 3}
@@ -3261,6 +3271,10 @@ MonoBehaviour:
   shotgunSound: {fileID: 8300000, guid: 8af9b84117aab4a48ba134e04951246a, type: 3}
   homingGunSound: {fileID: 8300000, guid: 40e71b0f7bd610849b40f150553f4702, type: 3}
   ammoEmptySound: {fileID: 8300000, guid: 56dcf3e2ea913c044abd3fff460d132c, type: 3}
+  machineGunPickupSound: {fileID: 8300000, guid: 536885021c4c5914bb88a9a7e0b59b19, type: 3}
+  shotgunPickupSound: {fileID: 8300000, guid: 3ddd0810486be0c4a8f55093a72f1b40, type: 3}
+  homingGunPickupSound: {fileID: 8300000, guid: dd06aca92164e8c4faa4f480337dc0ba, type: 3}
+  switchSound: {fileID: 8300000, guid: e1d79f4a0c7873742babc5f6e9ff800e, type: 3}
 --- !u!95 &207591625
 Animator:
   serializedVersion: 5
@@ -17387,6 +17401,87 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!1001 &1237903450
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 207591620}
+    m_Modifications:
+    - target: {fileID: 5383463544232666725, guid: bab9325df83c23846a0997c4208bfbb2, type: 3}
+      propertyPath: m_RootOrder
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5383463544232666725, guid: bab9325df83c23846a0997c4208bfbb2, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5383463544232666725, guid: bab9325df83c23846a0997c4208bfbb2, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5383463544232666725, guid: bab9325df83c23846a0997c4208bfbb2, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5383463544232666725, guid: bab9325df83c23846a0997c4208bfbb2, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5383463544232666725, guid: bab9325df83c23846a0997c4208bfbb2, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5383463544232666725, guid: bab9325df83c23846a0997c4208bfbb2, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5383463544232666725, guid: bab9325df83c23846a0997c4208bfbb2, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5383463544232666725, guid: bab9325df83c23846a0997c4208bfbb2, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5383463544232666725, guid: bab9325df83c23846a0997c4208bfbb2, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5383463544232666725, guid: bab9325df83c23846a0997c4208bfbb2, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5878899126748357876, guid: bab9325df83c23846a0997c4208bfbb2, type: 3}
+      propertyPath: m_Name
+      value: LandingEfx
+      objectReference: {fileID: 0}
+    - target: {fileID: 5878899126748357876, guid: bab9325df83c23846a0997c4208bfbb2, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7848275427516037678, guid: bab9325df83c23846a0997c4208bfbb2, type: 3}
+      propertyPath: m_Color.a
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7848275427516037678, guid: bab9325df83c23846a0997c4208bfbb2, type: 3}
+      propertyPath: m_Color.b
+      value: 0.21960786
+      objectReference: {fileID: 0}
+    - target: {fileID: 7848275427516037678, guid: bab9325df83c23846a0997c4208bfbb2, type: 3}
+      propertyPath: m_Color.g
+      value: 0.21960786
+      objectReference: {fileID: 0}
+    - target: {fileID: 7848275427516037678, guid: bab9325df83c23846a0997c4208bfbb2, type: 3}
+      propertyPath: m_Color.r
+      value: 0.21960786
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: bab9325df83c23846a0997c4208bfbb2, type: 3}
 --- !u!1001 &1251551270
 PrefabInstance:
   m_ObjectHideFlags: 0
