@@ -21,6 +21,8 @@ public class Boss2 : MonoBehaviour
     public string superAttackAnimationName = "BossFightLoop";
     [Tooltip("Prefab ก้อนพลังงานกลมๆ ที่จะอยู่ด้านหลังตลอดการต่อสู้")]
     public GameObject decorationPrefab;
+    [Tooltip("ค่า Offset แกน Y เพื่อปรับตำแหน่งของตกแต่งให้สูงขึ้นหรือต่ำลง")]
+    public float decorationOffsetY = 0.5f; // ⭐ NEW
 
     [Header("Movement & Warp Points")]
     public Transform[] warpPoints;
@@ -181,8 +183,8 @@ public class Boss2 : MonoBehaviour
             // เก็บ Reference ไว้ใน permanentDecoration
             permanentDecoration = Instantiate(decorationPrefab, transform.position, Quaternion.identity, transform);
 
-            // 3. ปรับตำแหน่ง Z เพื่อให้อยู่ด้านหลัง
-            permanentDecoration.transform.localPosition = new Vector3(0, 0, 1f);
+            // 3. ปรับตำแหน่ง Z เพื่อให้อยู่ด้านหลัง และ ปรับตำแหน่ง Y ด้วย decorationOffsetY
+            permanentDecoration.transform.localPosition = new Vector3(0, decorationOffsetY, 1f); // ⭐ MODIFIED
         }
 
         // Coroutine นี้จะจบลงทันที ทำให้การต่อสู้หลักสามารถดำเนินต่อไปได้ทันที
