@@ -3092,6 +3092,7 @@ GameObject:
   - component: {fileID: 207591626}
   - component: {fileID: 207591627}
   - component: {fileID: 207591628}
+  - component: {fileID: 207591630}
   - component: {fileID: 207591629}
   m_Layer: 7
   m_Name: Player
@@ -3513,6 +3514,23 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 1.55625, y: 2.1875}
   m_EdgeRadius: 0
+--- !u!114 &207591630
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 207591615}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dafe1f4ca22c006498791ea58002e7b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerTransform: {fileID: 207591620}
+  toggleKey: 111
+  confirmKey: 13
+  fixedYPosition: 15
+  fixedZPosition: 0
 --- !u!1 &212398766
 GameObject:
   m_ObjectHideFlags: 0
@@ -13286,7 +13304,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   normalMusic: {fileID: 8300000, guid: 5913c603a9a1da1469ec01529530c882, type: 3}
   bossMusic1: {fileID: 8300000, guid: c87805d80f0b0ba4ca7fe627a0d417e8, type: 3}
-  bossMusic2: {fileID: 0}
+  bossMusic2: {fileID: 8300000, guid: c25df22d5f1574e44b3d71e5cba4ffe0, type: 3}
   bossMusic3: {fileID: 8300000, guid: d38afdc3caf7ea74399f22279485049e, type: 3}
   fadeDuration: 0
 --- !u!4 &956427669
