@@ -244,7 +244,7 @@ public class Boss2 : MonoBehaviour
 
         isInvincible = true;
         float timer = 0f;
-        float frenzyDuration = 30f;
+        float frenzyDuration = 10f;
 
         // NEW: วนลูปยิงท่าโจมตีแนวนอนเท่านั้น
         while (timer < frenzyDuration)

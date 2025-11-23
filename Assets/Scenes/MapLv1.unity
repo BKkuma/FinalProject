@@ -19506,7 +19506,7 @@ PrefabInstance:
     - target: {fileID: 5107479201752372245, guid: 59980e5f2f3b0ea42826ffa10e596a19, type: 3}
       propertyPath: decorationPrefab
       value: 
-      objectReference: {fileID: 7151045806599834304, guid: 4dadbd1129283b04a869fa46f54e5ed4, type: 3}
+      objectReference: {fileID: 6566114175348109812, guid: edaa3a3e12b35c24682a1c866db037c9, type: 3}
     - target: {fileID: 5107479201752372245, guid: 59980e5f2f3b0ea42826ffa10e596a19, type: 3}
       propertyPath: energyBallPrefab
       value: 
@@ -32843,71 +32843,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: fed8e535ae0821c448ee59bd87ddf66c, type: 3}
---- !u!1001 &7026356239547516199
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 4970001086988543204, guid: edaa3a3e12b35c24682a1c866db037c9, type: 3}
-      propertyPath: m_RootOrder
-      value: 59
-      objectReference: {fileID: 0}
-    - target: {fileID: 4970001086988543204, guid: edaa3a3e12b35c24682a1c866db037c9, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 614.76215
-      objectReference: {fileID: 0}
-    - target: {fileID: 4970001086988543204, guid: edaa3a3e12b35c24682a1c866db037c9, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -3.860945
-      objectReference: {fileID: 0}
-    - target: {fileID: 4970001086988543204, guid: edaa3a3e12b35c24682a1c866db037c9, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4970001086988543204, guid: edaa3a3e12b35c24682a1c866db037c9, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4970001086988543204, guid: edaa3a3e12b35c24682a1c866db037c9, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4970001086988543204, guid: edaa3a3e12b35c24682a1c866db037c9, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4970001086988543204, guid: edaa3a3e12b35c24682a1c866db037c9, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4970001086988543204, guid: edaa3a3e12b35c24682a1c866db037c9, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4970001086988543204, guid: edaa3a3e12b35c24682a1c866db037c9, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4970001086988543204, guid: edaa3a3e12b35c24682a1c866db037c9, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6566114175348109812, guid: edaa3a3e12b35c24682a1c866db037c9, type: 3}
-      propertyPath: m_Name
-      value: EnegyHalo
-      objectReference: {fileID: 0}
-    - target: {fileID: 7077629065207614419, guid: edaa3a3e12b35c24682a1c866db037c9, type: 3}
-      propertyPath: bossAnimator
-      value: 
-      objectReference: {fileID: 1499531503}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: edaa3a3e12b35c24682a1c866db037c9, type: 3}
 --- !u!1001 &7612118716689767358
 PrefabInstance:
   m_ObjectHideFlags: 0
