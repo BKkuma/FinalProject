@@ -42,6 +42,9 @@ public class Boss2 : MonoBehaviour
     public Transform horizontalAttackSpawnPoint;
     [Tooltip("เวลาชาร์จก่อนยิงท่าแนวนอน")]
     public float frenzyHorizontalAttackCharge = 3f;
+    // ⭐ NEW: ระยะเวลาที่ Laser ค้างอยู่บนจอ
+    [Tooltip("ระยะเวลาที่ Laser ค้างอยู่บนจอ")]
+    public float frenzyHorizontalAttackDuration = 3f;
     [Tooltip("ความถี่ในการโจมตีแบบแนวนอน (ช่วงพักระหว่างการโจมตี)")]
     public float frenzyHorizontalAttackInterval = 3f;
 
@@ -63,9 +66,9 @@ public class Boss2 : MonoBehaviour
 
     [Header("Audio Settings")]
     public AudioSource audioSource;
-    public AudioClip chargeSFX;      // เสียงชาร์จพลัง
-    public AudioClip shootSFX_Phase1;    // เสียงยิงปกติ
-    public AudioClip shootSFX_Frenzy;    // เสียงใหม่: เสียงยิงรัวตอนอยู่กลางจอ
+    public AudioClip chargeSFX;      // เสียงชาร์จพลัง
+    public AudioClip shootSFX_Phase1;    // เสียงยิงปกติ
+    public AudioClip shootSFX_Frenzy;    // เสียงใหม่: เสียงยิงรัวตอนอยู่กลางจอ
     public float chargeDuration = 0.5f;
 
     [Header("Stats")]
@@ -244,10 +247,13 @@ public class Boss2 : MonoBehaviour
         // NEW: วนลูปยิงท่าโจมตีแนวนอนเท่านั้น
         while (timer < frenzyDuration)
         {
+            // ⭐ [FIX 4] คำนวณเวลาที่ใช้ในการโจมตีหนึ่งรอบ (ชาร์จ + ยิงค้าง)
+            float attackTime = frenzyHorizontalAttackCharge + frenzyHorizontalAttackDuration;
+
             yield return StartCoroutine(FrenzyHorizontalAttack());
 
-            // เพิ่มเวลาที่ใช้ในการชาร์จและหน่วงยิง
-            timer += frenzyHorizontalAttackCharge + 1f;
+            // เพิ่มเวลาที่ใช้ในการโจมตีหนึ่งรอบ
+            timer += attackTime;
 
             // หน่วงเวลาระหว่างรอบการโจมตี
             yield return new WaitForSeconds(frenzyHorizontalAttackInterval);
@@ -280,14 +286,30 @@ public class Boss2 : MonoBehaviour
         if (frenzyHorizontalAttackPrefab != null && horizontalAttackSpawnPoint != null)
         {
             // Instantiates ท่าโจมตีที่ตำแหน่งยิงที่กำหนด
-            Instantiate(frenzyHorizontalAttackPrefab, horizontalAttackSpawnPoint.position, Quaternion.identity);
+            // ⭐ [FIX 1] เก็บ Reference ของ Laser ที่ถูกสร้างขึ้นมา ⭐
+            GameObject laserInstance = Instantiate(frenzyHorizontalAttackPrefab, horizontalAttackSpawnPoint.position, Quaternion.identity);
 
             // เสียงยิง
             PlaySound(shootSFX_Frenzy);
+
+            // ⭐ [FIX 2] รอให้ Laser ค้างอยู่บนจอตามเวลาที่กำหนด ⭐
+            Debug.Log($"Laser Fired! Active for {frenzyHorizontalAttackDuration} seconds.");
+            yield return new WaitForSeconds(frenzyHorizontalAttackDuration);
+
+            // ⭐ [FIX 3] ทำลาย Laser หลังจากหมดเวลา ⭐
+            if (laserInstance != null)
+            {
+                Destroy(laserInstance);
+                Debug.Log("Laser destroyed.");
+            }
+        }
+        else
+        {
+            // หากไม่มี Prefab/SpawnPoint ต้องรอเวลาค้างไว้ด้วย มิฉะนั้นจะยิงเร็วเกินไป
+            yield return new WaitForSeconds(frenzyHorizontalAttackDuration);
         }
 
-        // หน่วงเวลาเล็กน้อยหลังจากยิง
-        yield return new WaitForSeconds(1f);
+        // 🔴 ลบ: 'yield return new WaitForSeconds(1f);' ออก
     }
 
     IEnumerator OverloadRoutine()
