@@ -37,13 +37,14 @@ public class PlayerHealth : MonoBehaviour
     private int usedLives = 0;
     private bool isInvincible = false;
 
+    // ⭐ NEW: เพิ่มตัวแปรสำหรับ God Mode ที่ Cheat Script จะใช้ ⭐
+    public bool isGodModeActive = false;
+
     private SpriteRenderer playerSpriteRenderer;
     private PlayerMovement playerMovement;
 
     void Start()
     {
-        // 🔴 ลบ: currentHealth = maxHealth; ออกไป
-
         if (gameOverUI != null) gameOverUI.SetActive(false);
 
         // เก็บ Reference Components
@@ -59,9 +60,16 @@ public class PlayerHealth : MonoBehaviour
         StartCoroutine(PlayLandingSequenceAtSpawn());
     }
 
-    // ⭐ MODIFIED: รับค่า float แต่ไม่ใช้ และเรียก Die() ทันที ⭐
+    // ⭐ MODIFIED: ตรวจสอบ isGodModeActive ก่อนเสมอ ⭐
     public void TakeDamage(float dmg)
     {
+        // ⭐ [FIX]: หากอยู่ใน God Mode ให้ Return ทันที
+        if (isGodModeActive)
+        {
+            Debug.Log("Player is protected by God Mode and took no damage.");
+            return;
+        }
+
         if (isDead || isInvincible) return;
 
         // ไม่ว่าดาเมจจะเป็นเท่าไหร่ (dmg) ก็ตายทันที
@@ -73,8 +81,10 @@ public class PlayerHealth : MonoBehaviour
     {
         if (isDead) return; // ป้องกันการเรียกซ้ำ
 
+        // ⭐ NEW: หากกำลังอยู่ใน God Mode ห้ามตาย
+        if (isGodModeActive) return;
+
         isDead = true;
-        // 🔴 ลบ: currentHealth = 0; ออกไป
 
         // ล็อคการควบคุมทันทีที่ตาย
         if (playerMovement != null) playerMovement.isLocked = true;
@@ -116,7 +126,6 @@ public class PlayerHealth : MonoBehaviour
     {
         // รีเซ็ตสถานะ
         isDead = false;
-        // 🔴 ลบ: currentHealth = maxHealth; ออกไป
 
         // ย้ายไปจุด respawn
         if (respawnPoint != null)
@@ -170,7 +179,11 @@ public class PlayerHealth : MonoBehaviour
             playerSpriteRenderer.enabled = true;
 
         // ⭐ เริ่มกระพริบอมตะ "หลังจาก" ตัวละครโผล่มาแล้ว ⭐
-        StartCoroutine(RespawnInvincible());
+        // ต้องตรวจสอบ God Mode ก่อนเริ่มกระพริบปกติ
+        if (!isGodModeActive)
+        {
+            StartCoroutine(RespawnInvincible());
+        }
 
         // เล่น Animation ท่าจบ (Landing)
         if (animator != null)
@@ -198,6 +211,14 @@ public class PlayerHealth : MonoBehaviour
 
         while (timer > 0)
         {
+            // หาก God Mode ถูกเปิดระหว่างกระพริบ ให้หยุด Coroutine นี้ทันที
+            if (isGodModeActive)
+            {
+                if (playerSpriteRenderer != null) playerSpriteRenderer.enabled = true;
+                isInvincible = false; // รีเซ็ตสถานะอมตะชั่วคราว
+                yield break;
+            }
+
             // สลับเปิด/ปิด Sprite (กระพริบ)
             if (playerSpriteRenderer != null)
                 playerSpriteRenderer.enabled = !playerSpriteRenderer.enabled;

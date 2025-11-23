@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
-using System; // เพิ่มเข้ามาเพื่อให้ System.Action ทำงานได้
+using System;
 
 public class HelicopterBoss : MonoBehaviour
 {
@@ -22,6 +22,10 @@ public class HelicopterBoss : MonoBehaviour
     public Transform missilePoint;
     public float missileFireRate = 1.2f;
 
+    // ⭐ NEW: ความเร็วของกระสุนปืนกล (ต้องตั้งค่าใน Inspector)
+    [Header("Bullet Settings")]
+    public float machineGunBulletSpeed = 10f;
+
     [Header("Audio")]
     public AudioSource audioSource;
     public AudioClip machineGunSound;
@@ -41,10 +45,9 @@ public class HelicopterBoss : MonoBehaviour
     public Color hitColor = Color.red;
     public float hitFlashDuration = 0.1f;
 
-    // ⭐ NEW: สำหรับเอฟเฟกต์ระเบิด
     [Header("Explosion Settings")]
     public GameObject explosionPrefab; // ลาก Prefab ระเบิดมาใส่ตรงนี้
-    public int numExplosions = 5;      // จำนวนครั้งที่ระเบิดจะปรากฏ
+    public int numExplosions = 5;      // จำนวนครั้งที่ระเบิดจะปรากฏ
     public float explosionInterval = 0.2f; // ระยะเวลาระหว่างระเบิดแต่ละลูก
 
     private Coroutine attackRoutine;
@@ -181,14 +184,23 @@ public class HelicopterBoss : MonoBehaviour
             audioSource.PlayOneShot(clip, volume);
     }
 
+    // ⭐ MODIFIED: ปรับให้กระสุนพุ่งไปทาง Vector2.left โดยเรียก SetDirection()
     void ShootBulletLeft()
     {
         if (bulletPrefab != null && firePoint != null)
         {
             GameObject bullet = Instantiate(bulletPrefab, firePoint.position, Quaternion.identity);
-            // Assumes BulletBoss has public field 'direction' and 'speed'
-            // If not, adjust as needed.
-            // Example: bullet.GetComponent<BulletBoss>()?.direction = Vector2.left; 
+
+            BulletBoss bulletScript = bullet.GetComponent<BulletBoss>();
+            if (bulletScript != null)
+            {
+                // สั่งให้กระสุนพุ่งไปทางซ้าย (Vector2.left)
+                bulletScript.SetDirection(Vector2.left);
+            }
+            else
+            {
+                Debug.LogError("Bullet Prefab is missing the BulletBoss script!");
+            }
         }
     }
 
@@ -212,7 +224,6 @@ public class HelicopterBoss : MonoBehaviour
         }
     }
 
-    // ⭐ Coroutine จัดการการระเบิดและทำลายบอส (แก้ไขตามความต้องการ)
     IEnumerator DeathSequence()
     {
         // 1. ซ่อน Sprite Renderer และ Collider
@@ -221,7 +232,7 @@ public class HelicopterBoss : MonoBehaviour
         if (GetComponent<Collider2D>() != null)
             GetComponent<Collider2D>().enabled = false;
 
-        // 2. สร้างเอฟเฟกต์ระเบิดซ้ำๆ (การหน่วงเวลานี้ทำให้กล้องรอจนจบ)
+        // 2. สร้างเอฟเฟกต์ระเบิดซ้ำๆ
         if (explosionPrefab != null)
         {
             for (int i = 0; i < numExplosions; i++)
@@ -233,8 +244,7 @@ public class HelicopterBoss : MonoBehaviour
             }
         }
 
-        // 3. ⭐ CHANGED: แจ้งเตือนสคริปต์อื่น ๆ ว่าบอสตายแล้ว
-        // Event นี้จะถูกเรียก *หลัง* จากเอฟเฟกต์ระเบิด (yield return) ทำงานเสร็จ
+        // 3. แจ้งเตือนสคริปต์อื่น ๆ ว่าบอสตายแล้ว
         onBossDefeated?.Invoke();
 
 
@@ -259,7 +269,6 @@ public class HelicopterBoss : MonoBehaviour
 
         if (collision.gameObject.CompareTag("PlayerBullet"))
         {
-            // Note: ต้องมั่นใจว่า Bullet มีสคริปต์ 'Bullet' และมี public field/property ชื่อ 'damage'
             Bullet playerBullet = collision.gameObject.GetComponent<Bullet>();
             if (playerBullet != null)
             {

@@ -120,11 +120,8 @@ public class ArenaController : MonoBehaviour
 
     public void OnBossDefeated()
     {
-        // ⭐ NEW: หยุดเพลงบอส เมื่อบอสตาย ⭐
-        if (MusicManager.Instance != null)
-        {
-            MusicManager.Instance.StopMusic();
-        }
+        // ⭐ MODIFIED: เอา MusicManager.Instance.StopMusic() ออกจากตรงนี้
+        // เราจะหยุดเพลงบอสและเริ่มเพลงปกติใน ReturnCameraToPlayer() แทน เพื่อให้มีการหน่วงเวลา
 
         if (barrier != null) Destroy(barrier);
 
@@ -153,6 +150,13 @@ public class ArenaController : MonoBehaviour
         }
 
         endPosToPlayer.z = startPos.z;
+
+        // ⭐ NEW: หยุดเพลงบอสทันทีที่เริ่มเลื่อนกล้องกลับ ⭐
+        if (MusicManager.Instance != null)
+        {
+            MusicManager.Instance.StopMusic();
+        }
+
 
         float elapsed = 0f;
         while (elapsed < cameraMoveDuration)
@@ -191,6 +195,12 @@ public class ArenaController : MonoBehaviour
             playerCameraFollow.enabled = true;      // เปิดสคริปต์
 
             Debug.Log("Camera Script ENABLED Success.");
+        }
+
+        // ⭐ NEW: เล่นเพลงปกติหลังจากกล้องกลับเข้าสู่โหมดติดตามผู้เล่นแล้ว ⭐
+        if (MusicManager.Instance != null)
+        {
+            MusicManager.Instance.PlayNormalMusic();
         }
     }
 }

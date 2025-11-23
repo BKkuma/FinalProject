@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Reflection;
 
 public class GodArsenalCheat : MonoBehaviour
@@ -15,7 +15,7 @@ public class GodArsenalCheat : MonoBehaviour
     bool isOn = false;
 
     // saved originals
-    bool origInvincible = false;
+    // 🔴 ลบ: origInvincible เพราะเราใช้ isGodModeActive แทนแล้ว
     int origMGAmmo = -1, origSGAmmo = -1, origHGAmmo = -1;
 
     void Awake()
@@ -29,8 +29,8 @@ public class GodArsenalCheat : MonoBehaviour
         origSGAmmo = GetIntFromPlayerShootingFieldOrProp("shotgunAmmo", "ShotgunAmmo", defaultValue: -1);
         origHGAmmo = GetIntFromPlayerShootingFieldOrProp("homingAmmo", "HomingAmmo", defaultValue: -1);
 
-        // read original invincible (best-effort)
-        origInvincible = GetBoolFromPlayerHealthFieldOrProp("isInvincible", "IsInvincible", defaultValue: false);
+        // 🔴 ลบ: read original invincible (ไม่จำเป็นแล้ว)
+        // origInvincible = GetBoolFromPlayerHealthFieldOrProp("isInvincible", "IsInvincible", defaultValue: false);
     }
 
     void Update()
@@ -47,8 +47,12 @@ public class GodArsenalCheat : MonoBehaviour
 
     void EnableGodArsenal()
     {
-        // 1) Set invincible true if possible
-        SetPlayerHealthBool("isInvincible", "IsInvincible", true);
+        // 1) ⭐ [FIX]: เปิด isGodModeActive โดยตรง 
+        if (playerHealth != null)
+        {
+            playerHealth.isGodModeActive = true;
+            Debug.Log("God Mode activated: Invincibility is now controlled by isGodModeActive.");
+        }
 
         // 2) Give all guns + set large ammo
         if (playerShooting != null)
@@ -107,8 +111,15 @@ public class GodArsenalCheat : MonoBehaviour
 
     void DisableGodArsenal()
     {
-        // restore invincible
-        SetPlayerHealthBool("isInvincible", "IsInvincible", origInvincible);
+        // ⭐ [FIX]: ปิด isGodModeActive โดยตรง
+        if (playerHealth != null)
+        {
+            playerHealth.isGodModeActive = false;
+            Debug.Log("God Mode deactivated.");
+        }
+
+        // restore invincible (ไม่จำเป็นต้องทำอะไรอีก เพราะ TakeDamage จะไปใช้ isInvincible 
+        // ปกติเมื่อ isGodModeActive เป็น false)
 
         // restore ammo values if we read them earlier
         if (origMGAmmo >= 0) SetIntOnPlayerShooting("machineGunAmmo", origMGAmmo);
@@ -160,31 +171,16 @@ public class GodArsenalCheat : MonoBehaviour
         return s;
     }
 
+    // 🔴 ลบฟังก์ชันนี้ทิ้ง เนื่องจากไม่จำเป็นต้องตั้งค่า isInvincible ผ่าน Reflection อีกต่อไป
     void SetPlayerHealthBool(string fieldName, string propName, bool value)
     {
-        if (playerHealth == null) return;
-        var f = playerHealth.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-        if (f != null) { f.SetValue(playerHealth, value); return; }
-        var p = playerHealth.GetType().GetProperty(propName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-        if (p != null && p.CanWrite) p.SetValue(playerHealth, value);
+        // NOOP: Function removed/disabled. We use playerHealth.isGodModeActive directly now.
     }
 
+    // 🔴 ลบฟังก์ชันนี้ทิ้ง เนื่องจากไม่จำเป็นต้องอ่านค่า isInvincible ผ่าน Reflection อีกต่อไป
     bool GetBoolFromPlayerHealthFieldOrProp(string fieldName, string propName, bool defaultValue = false)
     {
-        if (playerHealth == null) return defaultValue;
-        var p = playerHealth.GetType().GetProperty(propName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-        if (p != null)
-        {
-            object v = p.GetValue(playerHealth);
-            if (v is bool) return (bool)v;
-        }
-        var f = playerHealth.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-        if (f != null)
-        {
-            object v = f.GetValue(playerHealth);
-            if (v is bool) return (bool)v;
-        }
-        return defaultValue;
+        return defaultValue; // Return default as we no longer read this value
     }
 
     object GetObjectFieldOrProp(object obj, string fieldName, string propName, string fallback)

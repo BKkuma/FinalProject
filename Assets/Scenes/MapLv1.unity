@@ -1085,7 +1085,7 @@ BoxCollider2D:
   m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: 0, y: 2.025285}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -1096,7 +1096,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 1, y: 5.05057}
   m_EdgeRadius: 0
 --- !u!1001 &44048410
 PrefabInstance:
@@ -5522,8 +5522,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: 0, y: 59}
-  m_SizeDelta: {x: 258.2675, y: 65.422}
+  m_AnchoredPosition: {x: 54, y: 101}
+  m_SizeDelta: {x: 436.5509, y: 155.213}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &383454772
 MonoBehaviour:
@@ -12871,7 +12871,7 @@ RectTransform:
   m_GameObject: {fileID: 920779610}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 5, y: 5, z: 1}
+  m_LocalScale: {x: 10, y: 10, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 383454771}
@@ -12879,8 +12879,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -6.7, y: 12}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchoredPosition: {x: -15, y: 25}
+  m_SizeDelta: {x: 0, y: -132.1087}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &920779612
 MonoBehaviour:
@@ -13306,6 +13306,8 @@ MonoBehaviour:
   bossMusic1: {fileID: 8300000, guid: c87805d80f0b0ba4ca7fe627a0d417e8, type: 3}
   bossMusic2: {fileID: 8300000, guid: c25df22d5f1574e44b3d71e5cba4ffe0, type: 3}
   bossMusic3: {fileID: 8300000, guid: d38afdc3caf7ea74399f22279485049e, type: 3}
+  primaryGameSceneName: MapLv1
+  victorySceneName: VictoryScene
   fadeDuration: 0
 --- !u!4 &956427669
 Transform:
@@ -30991,6 +30993,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Pitfall (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 2830583778586977644, guid: 66ac61d8601fbe745a4aca5665e5c38e, type: 3}
+      propertyPath: m_TagString
+      value: EnemyBullet
+      objectReference: {fileID: 0}
     - target: {fileID: 3450896362480085598, guid: 66ac61d8601fbe745a4aca5665e5c38e, type: 3}
       propertyPath: m_RootOrder
       value: 21
@@ -32410,6 +32416,10 @@ PrefabInstance:
     - target: {fileID: 4136307786356892133, guid: ad71bfb8e8925dc43918851c70fa457c, type: 3}
       propertyPath: m_SpriteTilingProperty.oldSize.y
       value: 3.6633334
+      objectReference: {fileID: 0}
+    - target: {fileID: 5041166819938665305, guid: ad71bfb8e8925dc43918851c70fa457c, type: 3}
+      propertyPath: m_Volume
+      value: 0.35
       objectReference: {fileID: 0}
     - target: {fileID: 5800007649706109233, guid: ad71bfb8e8925dc43918851c70fa457c, type: 3}
       propertyPath: m_Sprite
