@@ -1,9 +1,13 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 using System;
 
 public class BossPhase2Cinematic : MonoBehaviour
 {
+    [Header("Cinematic Identity")]
+    [Tooltip("ระบุหมายเลขบอส (ใช้ 3 สำหรับบอสตัวนี้)")]
+    public int bossID = 3; // ⭐ NEW: กำหนด ID เป็น 3 ⭐
+
     [Header("Boss & Object Settings")]
     public GameObject fakeBossVisual;
     public GameObject realBossObject;
@@ -19,12 +23,14 @@ public class BossPhase2Cinematic : MonoBehaviour
     [Header("Camera Control")]
     public Camera mainCamera;
     public CameraFollowLockY playerCameraFollow;
-    public Transform bossCameraPoint;� � � � � �// ���˹觷����ͧ������͹���ش
+    public Transform bossCameraPoint;           // ตำแหน่งที่กล้องจะเลื่อนไปหยุด
     public GameObject player;
 
     [Header("Camera Animation Settings")]
     public float camMoveDuration = 1.2f;
     public AnimationCurve camEase = AnimationCurve.EaseInOut(0, 0, 1, 1);
+
+    // ⭐ REMOVED: ลบ [Header("Audio Control")] ที่เคยมีออกทั้งหมด ⭐
 
     private bool hasTriggered = false;
 
@@ -45,16 +51,22 @@ public class BossPhase2Cinematic : MonoBehaviour
 
     IEnumerator PlayIntroSequence()
     {
-        // 0. �Դ Follow Script ������������͹���ͧ
+        // ⭐ MODIFIED: 0.1 จัดการเพลง: สั่งให้ MusicManager เล่นเพลงบอสด้วย ID 3 ⭐
+        if (MusicManager.Instance != null)
+        {
+            MusicManager.Instance.PlayBossMusic(bossID);
+        }
+
+        // 0. ปิด Follow Script และเตรียมเลื่อนกล้อง
         if (playerCameraFollow != null)
             playerCameraFollow.enabled = false;
 
-        // 1. Cinematic: �Թ��������ǹ
+        // 1. Cinematic: บินและย่อส่วน
         if (fakeBossVisual != null)
         {
             float elapsed = 0f;
 
-            // �Դ��ǻ�����е�駤���������
+            // เปิดตัวปลอมและตั้งค่าเริ่มต้น
             fakeBossVisual.SetActive(true);
             fakeBossVisual.transform.position = startPoint.position;
             fakeBossVisual.transform.localScale = initialScale;
@@ -68,7 +80,7 @@ public class BossPhase2Cinematic : MonoBehaviour
                 fakeBossVisual.transform.position = Vector3.Lerp(startPoint.position, endPoint.position, t);
                 fakeBossVisual.transform.localScale = Vector3.Lerp(initialScale, finalScale, t);
 
-                // ����͹���ͧ��� Cinematic
+                // เลื่อนกล้องตาม Cinematic
                 if (mainCamera != null && bossCameraPoint != null)
                 {
                     Vector3 camStart = mainCamera.transform.position;
@@ -80,7 +92,7 @@ public class BossPhase2Cinematic : MonoBehaviour
                 yield return null;
             }
 
-            // ��駤���ش�������ç���
+            // ตั้งค่าสุดท้ายให้ตรงเป๊ะ
             fakeBossVisual.transform.position = endPoint.position;
             fakeBossVisual.transform.localScale = finalScale;
 
@@ -92,17 +104,10 @@ public class BossPhase2Cinematic : MonoBehaviour
             }
         }
 
-        // 2. �Ϳ࿡���ŧ��ҧ
-        //� if (transformEffect != null)
-        //� {
-        //� � �Instantiate(transformEffect, endPoint.position, Quaternion.identity);
-        // }
-
+        // 2. เอฟเฟกต์แปลงร่าง
         yield return new WaitForSeconds(0.2f);
 
-        // ** 3. ź Logic �����ͤ�ͺࢵ (StartBossFight) �͡ **
-
-        // 4. ��Ѻ��ҧ -> �Դ��Ǩ�ԧ
+        // 4. สลับร่าง -> เปิดตัวจริง
         if (fakeBossVisual != null) fakeBossVisual.SetActive(false);
 
         if (realBossObject != null)
@@ -111,16 +116,20 @@ public class BossPhase2Cinematic : MonoBehaviour
             realBossObject.SetActive(true);
         }
 
-        // 5. �ͺ�������������
+        // 5. รอบอสเริ่มต่อสู้
         yield return new WaitForSeconds(delayBeforeFight);
 
-        // 6. �� Boss2 ���
+        // 6. รอ Boss2 ตาย
         GameObject theBoss = realBossObject;
         yield return new WaitUntil(() => theBoss == null);
 
-        // 7. **����� EndBossFight ��������� StartBossFight**
+        // ⭐ MODIFIED: 7.1 จัดการเพลงเมื่อบอสตาย (สั่งให้ MusicManager หยุดเพลง) ⭐
+        if (MusicManager.Instance != null)
+        {
+            MusicManager.Instance.StopMusic();
+        }
 
-        // 8. ����͹���ͧ��Ѻ���˹觼�����
+        // 8. เลื่อนกล้องกลับตำแหน่งผู้เล่น
         if (player != null)
         {
             Vector3 startPos = mainCamera.transform.position;
@@ -135,28 +144,24 @@ public class BossPhase2Cinematic : MonoBehaviour
                 float t = camEase.Evaluate(timer / camMoveDuration);
                 Vector3 tempPos = Vector3.Lerp(startPos, endPosToPlayer, t);
 
-                // [FIX 1] Clamping Y ��С��ͧ����͹ (�� minY/maxY �ҡ CameraFollowLockY)
+                // [FIX 1] Clamping Y ขณะกล้องเลื่อน (ใช้ minY/maxY จาก CameraFollowLockY)
                 float clampedY = Mathf.Clamp(tempPos.y, playerCameraFollow.minY, playerCameraFollow.maxY);
                 mainCamera.transform.position = new Vector3(tempPos.x, clampedY, tempPos.z);
 
                 yield return null;
             }
-            // mainCamera.transform.position = endPosToPlayer; // ź�͡! ��Ҩ��� Teleport ᷹
 
-            // 9. �Դ follow script �׹
+            // 9. เปิด follow script คืน
             if (playerCameraFollow != null)
             {
                 playerCameraFollow.ResetLockToTarget();
-
-                // [FIX] �� TeleportToTarget ᷹��õ�駤�� position �µç
                 Vector3 newTargetPos = player.transform.position;
-                playerCameraFollow.TeleportToTarget(newTargetPos); // ���ͧ�� Clamping ���˹觷ѹ��
-
-                playerCameraFollow.enabled = true; // �Դ��õԴ���������
+                playerCameraFollow.TeleportToTarget(newTargetPos);
+                playerCameraFollow.enabled = true; // เปิดการติดตามผู้เล่น
             }
         }
 
-        // 10. �Ѵ����ش����
+        // 10. จัดการสุดท้าย
         Destroy(gameObject);
     }
 }

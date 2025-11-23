@@ -3,6 +3,10 @@ using System.Collections;
 
 public class ArenaController : MonoBehaviour
 {
+    [Header("Cinematic Identity")]
+    [Tooltip("ระบุหมายเลขบอส (ใช้ 2 สำหรับบอสตัวนี้)")]
+    public int bossID = 2; // ⭐ NEW: กำหนด ID เป็น 2 ⭐
+
     [Header("Arena Settings")]
     public Transform liftablePlatform;
     public float liftHeight = 3f;
@@ -83,6 +87,12 @@ public class ArenaController : MonoBehaviour
             yield return null;
         }
         mainCamera.transform.position = endPos;
+
+        // ⭐ NEW: เปลี่ยนเพลงบอสด้วย ID 2 หลังจากกล้องหยุด ⭐
+        if (MusicManager.Instance != null)
+        {
+            MusicManager.Instance.PlayBossMusic(bossID);
+        }
     }
 
     void SpawnBoss()
@@ -110,6 +120,12 @@ public class ArenaController : MonoBehaviour
 
     public void OnBossDefeated()
     {
+        // ⭐ NEW: หยุดเพลงบอส เมื่อบอสตาย ⭐
+        if (MusicManager.Instance != null)
+        {
+            MusicManager.Instance.StopMusic();
+        }
+
         if (barrier != null) Destroy(barrier);
 
         // ปิด CameraFollowLockY ก่อนเลื่อนกล้องกลับ (เผื่อไว้)
@@ -124,7 +140,6 @@ public class ArenaController : MonoBehaviour
         Debug.Log("Start Returning Camera...");
         Vector3 startPos = mainCamera.transform.position;
 
-        // ใช้ Target เดิมที่ผูกไว้ใน Inspector เลย ไม่ต้อง Find ใหม่
         Vector3 endPosToPlayer = Vector3.zero;
         if (playerCameraFollow != null && playerCameraFollow.target != null)
         {
@@ -154,7 +169,6 @@ public class ArenaController : MonoBehaviour
 
             yield return null;
         }
-        // mainCamera.transform.position = endPosToPlayer; // ลบออก! เราจะใช้ Teleport แทน
 
         Debug.Log("Camera Returned. Re-enabling script...");
 
@@ -174,7 +188,7 @@ public class ArenaController : MonoBehaviour
             Vector3 newTargetPos = playerCameraFollow.target.position;
             playerCameraFollow.TeleportToTarget(newTargetPos); // กล้องจะ Clamping ตำแหน่งทันที
 
-            playerCameraFollow.enabled = true;      // เปิดสคริปต์
+            playerCameraFollow.enabled = true;      // เปิดสคริปต์
 
             Debug.Log("Camera Script ENABLED Success.");
         }

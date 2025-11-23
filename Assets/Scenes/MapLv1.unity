@@ -1018,6 +1018,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 513f249c8ccc10e4bbebb2e92286bd5b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  bossID: 2
   liftablePlatform: {fileID: 886054522}
   liftHeight: 4
   liftSpeed: 2
@@ -3206,7 +3207,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 207591615}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 600, y: 3.93, z: 0}
+  m_LocalPosition: {x: -15, y: 3.93, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -3881,9 +3882,7 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1546959700}
-  - {fileID: 1687756495}
+  m_Children: []
   m_Father: {fileID: 1223508064}
   m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -13286,7 +13285,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   normalMusic: {fileID: 8300000, guid: 5913c603a9a1da1469ec01529530c882, type: 3}
-  bossMusic: {fileID: 8300000, guid: c87805d80f0b0ba4ca7fe627a0d417e8, type: 3}
+  bossMusic1: {fileID: 8300000, guid: c87805d80f0b0ba4ca7fe627a0d417e8, type: 3}
+  bossMusic2: {fileID: 0}
+  bossMusic3: {fileID: 8300000, guid: d38afdc3caf7ea74399f22279485049e, type: 3}
   fadeDuration: 0
 --- !u!4 &956427669
 Transform:
@@ -15935,6 +15936,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dfa32ed5e50c0b54793df013c6cf8f74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  bossID: 3
   fakeBossVisual: {fileID: 1419745815}
   realBossObject: {fileID: 1499531498}
   startPoint: {fileID: 1186361848}
@@ -17121,6 +17123,8 @@ RectTransform:
   - {fileID: 391067188}
   - {fileID: 272322225}
   - {fileID: 1780762794}
+  - {fileID: 1546959700}
+  - {fileID: 1687756495}
   - {fileID: 246716454}
   m_Father: {fileID: 0}
   m_RootOrder: 31
@@ -19399,11 +19403,19 @@ PrefabInstance:
     - target: {fileID: 5107479201752372245, guid: 59980e5f2f3b0ea42826ffa10e596a19, type: 3}
       propertyPath: victoryCanvasGroup
       value: 
-      objectReference: {fileID: 1546959701}
+      objectReference: {fileID: 0}
+    - target: {fileID: 5107479201752372245, guid: 59980e5f2f3b0ea42826ffa10e596a19, type: 3}
+      propertyPath: whiteFadeUIHandler
+      value: 
+      objectReference: {fileID: 1687756498}
     - target: {fileID: 5107479201752372245, guid: 59980e5f2f3b0ea42826ffa10e596a19, type: 3}
       propertyPath: whiteFadeCanvasGroup
       value: 
-      objectReference: {fileID: 1687756498}
+      objectReference: {fileID: 0}
+    - target: {fileID: 5107479201752372245, guid: 59980e5f2f3b0ea42826ffa10e596a19, type: 3}
+      propertyPath: finalVictoryUIHandler
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 5107479201752372245, guid: 59980e5f2f3b0ea42826ffa10e596a19, type: 3}
       propertyPath: superAttackBulletPrefab
       value: 
@@ -21739,14 +21751,13 @@ GameObject:
   - component: {fileID: 1546959700}
   - component: {fileID: 1546959703}
   - component: {fileID: 1546959702}
-  - component: {fileID: 1546959701}
   m_Layer: 5
   m_Name: EndUIFinal
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1546959700
 RectTransform:
   m_ObjectHideFlags: 0
@@ -21759,7 +21770,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 246716454}
+  m_Father: {fileID: 1223508064}
   m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -21767,18 +21778,6 @@ RectTransform:
   m_AnchoredPosition: {x: -0.000061035156, y: 0}
   m_SizeDelta: {x: 1920, y: 1080}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!225 &1546959701
-CanvasGroup:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1546959699}
-  m_Enabled: 1
-  m_Alpha: 1
-  m_Interactable: 1
-  m_BlocksRaycasts: 1
-  m_IgnoreParentGroups: 0
 --- !u!114 &1546959702
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -24099,6 +24098,7 @@ GameObject:
   - component: {fileID: 1687756495}
   - component: {fileID: 1687756497}
   - component: {fileID: 1687756496}
+  - component: {fileID: 1687756499}
   - component: {fileID: 1687756498}
   m_Layer: 5
   m_Name: EndUI
@@ -24106,7 +24106,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1687756495
 RectTransform:
   m_ObjectHideFlags: 0
@@ -24119,7 +24119,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 246716454}
+  m_Father: {fileID: 1223508064}
   m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -24165,7 +24165,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1687756494}
   m_CullTransparentMesh: 1
---- !u!225 &1687756498
+--- !u!114 &1687756498
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1687756494}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c61cd7bcf277c5b48bdc76ecc2ec53c5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fadeDuration: 1
+  menuSceneName: MainMenu
+--- !u!225 &1687756499
 CanvasGroup:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -25030,6 +25044,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 12311d06d4951df4dac00bb912c71f08, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  bossID: 1
   boss: {fileID: 1701456412}
   mainCamera: {fileID: 519420031}
   player: {fileID: 207591615}

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
-using UnityEngine.SceneManagement; // เพิ่ม namespace นี้
+using UnityEngine.SceneManagement;
 
 public class MusicManager : MonoBehaviour
 {
@@ -8,7 +8,10 @@ public class MusicManager : MonoBehaviour
 
     [Header("Music Clips")]
     public AudioClip normalMusic;
-    public AudioClip bossMusic;
+    // ⭐ NEW: แยกเพลงบอสตามหมายเลข ⭐
+    public AudioClip bossMusic1;
+    public AudioClip bossMusic2;
+    public AudioClip bossMusic3;
 
     [Header("Settings")]
     public float fadeDuration = 1.0f;
@@ -34,10 +37,8 @@ public class MusicManager : MonoBehaviour
             audioSource = gameObject.AddComponent<AudioSource>();
 
         audioSource.loop = true;
-        // ไม่ต้องเรียก PlayNormalMusic() ที่นี่แล้ว เพราะ OnSceneLoaded จะทำงานแทน
     }
 
-    // เพิ่มส่วนนี้เพื่อดักจับการเปลี่ยน Scene
     void OnEnable()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
@@ -50,25 +51,57 @@ public class MusicManager : MonoBehaviour
 
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // ทุกครั้งที่โหลด Scene (รวมถึง Restart เกม) ให้กลับมาเล่นเพลงปกติ
         PlayNormalMusic();
     }
 
     public void PlayNormalMusic()
     {
         if (normalMusic == null) return;
-        // ถ้าเพลงที่เล่นอยู่คือ normalMusic อยู่แล้ว ไม่ต้อง fade ใหม่
         if (audioSource.clip == normalMusic && audioSource.isPlaying) return;
 
         StartFadeToClip(normalMusic);
     }
 
-    public void PlayBossMusic()
+    // ⭐ NEW: ฟังก์ชันสำหรับเล่นเพลงบอสโดยระบุหมายเลข ⭐
+    public void PlayBossMusic(int bossNumber)
     {
-        if (bossMusic == null) return;
-        if (audioSource.clip == bossMusic && audioSource.isPlaying) return;
+        AudioClip selectedBossMusic = null;
 
-        StartFadeToClip(bossMusic);
+        switch (bossNumber)
+        {
+            case 1:
+                selectedBossMusic = bossMusic1;
+                break;
+            case 2:
+                selectedBossMusic = bossMusic2;
+                break;
+            case 3:
+                selectedBossMusic = bossMusic3;
+                break;
+            default:
+                Debug.LogWarning("Invalid boss number provided. Playing normal music instead.");
+                PlayNormalMusic();
+                return;
+        }
+
+        if (selectedBossMusic == null)
+        {
+            Debug.LogError($"Boss Music {bossNumber} clip is missing! Cannot play.");
+            return;
+        }
+
+        if (audioSource.clip == selectedBossMusic && audioSource.isPlaying) return;
+
+        StartFadeToClip(selectedBossMusic);
+    }
+
+    public void StopMusic()
+    {
+        if (currentFade != null)
+            StopCoroutine(currentFade);
+
+        audioSource.Stop();
+        audioSource.volume = 1f;
     }
 
     private void StartFadeToClip(AudioClip newClip)
@@ -80,7 +113,7 @@ public class MusicManager : MonoBehaviour
 
     private IEnumerator FadeToClip(AudioClip newClip)
     {
-        float startVolume = 1.0f; // กำหนด volume มาตรฐาน หรือใช้ audioSource.volume เดิมก็ได้
+        float startVolume = 1.0f;
 
         // Fade out
         for (float t = 0; t < fadeDuration; t += Time.deltaTime)

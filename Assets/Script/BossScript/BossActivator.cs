@@ -3,13 +3,17 @@ using System.Collections;
 
 public class BossActivator : MonoBehaviour
 {
+    [Header("Cinematic Identity")]
+    [Tooltip("ระบุหมายเลขบอส (ใช้ 1 สำหรับบอสตัวนี้)")]
+    public int bossID = 1; // ⭐ NEW: กำหนด ID เป็น 1 ⭐
+
     [Header("References")]
-    public GameObject boss;                   // บอส
-    public Camera mainCamera;                 // กล้องผู้เล่น
-    public GameObject player;                 // ผู้เล่น
-    public CameraFollowLockY playerCameraFollow; // Follow script ของผู้เล่น
-    public Transform bossCameraPoint;         // Empty GameObject ตำแหน่งกล้องบอส
-    public GameObject bossBounds;             // กำแพงบอส
+    public GameObject boss;
+    public Camera mainCamera;
+    public GameObject player;
+    public CameraFollowLockY playerCameraFollow;
+    public Transform bossCameraPoint;
+    public GameObject bossBounds;
 
     [Header("Camera Settings")]
     public float camMoveDuration = 1.2f;
@@ -50,7 +54,7 @@ public class BossActivator : MonoBehaviour
         // เก็บตำแหน่งเริ่มต้น mainCamera
         Vector3 startPos = mainCamera.transform.position;
         Vector3 endPos = bossCameraPoint.position;
-        endPos.z = startPos.z; // รักษา Z ของ mainCamera
+        endPos.z = startPos.z;
 
         // 1. เลื่อนกล้องไปหาบอส
         float timer = 0f;
@@ -67,9 +71,9 @@ public class BossActivator : MonoBehaviour
             yield return null;
         }
 
-        // 2. เปลี่ยนเพลงบอส
+        // ⭐ MODIFIED: 2. เปลี่ยนเพลงบอสด้วย ID 1 ⭐
         if (MusicManager.Instance != null)
-            MusicManager.Instance.PlayBossMusic();
+            MusicManager.Instance.PlayBossMusic(bossID); // ใช้ bossID ที่กำหนดไว้
 
         // 3. สั่งให้บอสเล่นฉากเปิดตัว (บินเข้ามา)
         HelicopterBoss heli = boss.GetComponent<HelicopterBoss>();
@@ -112,7 +116,11 @@ public class BossActivator : MonoBehaviour
         if (pb != null) pb.enabled = true;
         if (bossBounds != null) bossBounds.SetActive(false);
 
+        // MODIFIED: กลับไปเล่นเพลงปกติ
         if (MusicManager.Instance != null)
             MusicManager.Instance.PlayNormalMusic();
+
+        // MODIFIED: ไม่จำเป็นต้องทำลายตัวเองใน BossActivator ถ้าบอสตัวนี้กลับมาได้
+        // แต่ถ้าบอสตัวนี้ไม่กลับมา ก็สามารถใส่ Destroy(gameObject); ตรงนี้ได้
     }
 }
