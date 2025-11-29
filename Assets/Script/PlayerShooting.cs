@@ -74,7 +74,7 @@ public class PlayerShooting : MonoBehaviour
         {
             if (animator != null) animator.SetBool("isShooting", true);
 
-            // ------------------ Machine Gun (เสียงต่อเนื่อง) ------------------
+           
             if (usingMachineGun)
             {
                 if (machineGunAmmo > 0)
@@ -87,7 +87,7 @@ public class PlayerShooting : MonoBehaviour
                         isMachineGunFiring = true;
                     }
                 }
-                else // Machine Gun กระสุนหมด
+                else 
                 {
                     if (isMachineGunFiring)
                     {
@@ -102,7 +102,7 @@ public class PlayerShooting : MonoBehaviour
             // ------------------ Logic การยิงจริง ------------------
             if (Time.time >= nextFireTime)
             {
-                // *** ใช้ playerMove.ShootDirection ที่ถูกกำหนดใน PlayerMovement.cs แล้ว ***
+                
                 Transform shootPoint = GetShootPoint();
                 Vector2 direction = playerMove.ShootDirection;
 
@@ -256,7 +256,7 @@ public class PlayerShooting : MonoBehaviour
         audioSource.PlayOneShot(clip);
     }
 
-    // -------------------- NEW: ฟังก์ชันสำหรับเก็บปืน/เติมกระสุน --------------------
+    // -------------------- ฟังก์ชันสำหรับเก็บปืน/เติมกระสุน --------------------
     public void PickupAmmo(string gunType, int ammoToAdd)
     {
         AudioClip pickupSound = null;
@@ -293,7 +293,7 @@ public class PlayerShooting : MonoBehaviour
     }
 
 
-    // -------------------- Switch weapons (ใช้สำหรับสลับปืนเท่านั้น) --------------------
+    // -------------------- Switch weapons --------------------
     public void SwitchToMachineGun(GameObject newBulletPrefab)
     {
         if (!usingMachineGun) PlayGunSound(switchSound);
@@ -337,7 +337,7 @@ public class PlayerShooting : MonoBehaviour
         currentBulletPrefab = normalBulletPrefab;
     }
 
-    // Properties สำหรับ UI
+    
     public bool IsUsingMachineGun => usingMachineGun;
     public bool IsUsingShotgun => usingShotgun;
     public bool IsUsingHoming => usingHoming;

@@ -4,19 +4,18 @@ using System.Collections;
 public class JetBoss : MonoBehaviour
 {
     [Header("Movement")]
-    public float moveSpeed = 6f;        // ความเร็วแนวนอน
+    public float moveSpeed = 6f;       
     public Transform leftPoint;
     public Transform rightPoint;
-    public float sineAmplitude = 1.5f;  // ระยะขึ้นลงแบบ sine wave
-    public float sineFrequency = 3f;    // ความถี่ sine
+    public float sineAmplitude = 1.5f;  
+    public float sineFrequency = 3f;   
 
     [Header("Combat")]
     public GameObject bulletPrefab;
     public Transform firePoint;
     public float bulletFireRate = 0.3f;
-    public int bulletSpreadCount = 3;   // ยิงกี่กระสุนพร้อมกัน
-    public float bulletSpreadAngle = 15f; // กระจายมุมกระสุน
-
+    public int bulletSpreadCount = 3;   
+    public float bulletSpreadAngle = 15f; 
     [Header("Audio")]
     public AudioSource audioSource;
     public AudioClip machineGunSound;
@@ -59,7 +58,7 @@ public class JetBoss : MonoBehaviour
     {
         if (leftPoint == null || rightPoint == null) return;
 
-        // Move horizontally
+        
         float step = moveSpeed * Time.deltaTime;
         Vector3 target = movingRight ? rightPoint.position : leftPoint.position;
         transform.position = Vector3.MoveTowards(transform.position, target, step);
@@ -67,7 +66,7 @@ public class JetBoss : MonoBehaviour
         if (Vector3.Distance(transform.position, target) < 0.1f)
             movingRight = !movingRight;
 
-        // Vertical sine wave motion
+       
         float sineY = Mathf.Sin(Time.time * sineFrequency) * sineAmplitude;
         transform.position = new Vector3(transform.position.x, transform.position.y + sineY * Time.deltaTime, transform.position.z);
     }
@@ -116,9 +115,9 @@ public class JetBoss : MonoBehaviour
 
         if (currentHP <= 0)
         {
-            // Phase1 defeated event
+           
             onPhase1Defeated?.Invoke();
-            // บอสหนีออกไปหลังฉาก
+            
             StartCoroutine(EscapePhase1());
         }
     }

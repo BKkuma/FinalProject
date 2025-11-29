@@ -68,9 +68,9 @@ public class Boss2 : MonoBehaviour
 
     [Header("Audio Settings")]
     public AudioSource audioSource;
-    public AudioClip chargeSFX;      // เสียงชาร์จพลัง
-    public AudioClip shootSFX_Phase1;    // เสียงยิงปกติ
-    public AudioClip shootSFX_Frenzy;    // เสียงใหม่: เสียงยิงรัวตอนอยู่กลางจอ
+    public AudioClip chargeSFX;      
+    public AudioClip shootSFX_Phase1;   
+    public AudioClip shootSFX_Frenzy;    
     public float chargeDuration = 0.5f;
 
     [Header("Stats")]
@@ -83,26 +83,26 @@ public class Boss2 : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private Color originalColor;
 
-    // ⭐ MODIFIED: Defeat & Victory Settings (ตัด UI Handler ออกไป)
+   
     [Header("Defeat & Victory")]
     public float deathAnimationDuration = 3f;
     public GameObject explosionPrefab;
     [Tooltip("ชื่อ Scene ฉากจบ (เช่น VictoryScene)")]
-    public string victorySceneName = "VictoryScene"; // ⭐ NEW: สำหรับ LoadScene
-    // ⭐ END MODIFIED
+    public string victorySceneName = "VictoryScene"; 
+   
 
     private enum Phase { Phase1, Frenzy, Overload, Phase2 }
     private Phase currentPhase = Phase.Phase1;
 
     private Coroutine hitFlashRoutine;
     private bool isInvincible = false;
-    private bool isDefeated = false; // ตัวแปรเช็คสถานะการตาย
+    private bool isDefeated = false; 
     private Transform lastWarpPoint;
 
     private bool battleStarted = false;
-    private GameObject permanentDecoration; // สำหรับเก็บ Prefab ลูกกลมๆ ที่ติดถาวร
+    private GameObject permanentDecoration; 
 
-    // สำหรับเก็บตำแหน่งเดิมของ Platform 
+    
     private Vector3 platformOriginalPosition;
 
     void Start()
@@ -117,7 +117,7 @@ public class Boss2 : MonoBehaviour
         if (audioSource == null)
             audioSource = gameObject.AddComponent<AudioSource>();
 
-        // เก็บตำแหน่งเดิมของ Platform (ถ้ามี)
+       
         if (playerPlatform != null)
         {
             platformOriginalPosition = playerPlatform.transform.position;
@@ -125,7 +125,7 @@ public class Boss2 : MonoBehaviour
 
         isInvincible = true;
 
-        // เรียก StartBattleSequence เพื่อจัดการ Transform Animation และท่าโจมตีเริ่มต้น
+       
         if (waitForAnimation)
         {
             if (bossAnimator != null) bossAnimator.Play(introAnimationName);
@@ -137,35 +137,35 @@ public class Boss2 : MonoBehaviour
         }
     }
 
-    // ฟังก์ชันที่ถูกเรียกเมื่อ Intro Animation จบ
+    
     public void StartBattleSequence()
     {
         if (battleStarted) return;
         StartCoroutine(InitialBattleSequence());
     }
 
-    // Coroutine ลำดับเหตุการณ์เริ่มต้น: เล่นท่าถาวร -> เริ่ม Phase 1
+    
     IEnumerator InitialBattleSequence()
     {
-        // 1. เล่นท่าโจมตีพิเศษและแสดงของตกแต่ง (ถาวร)
+       
         yield return StartCoroutine(SuperAttackRoutine());
         if (isDefeated) yield break;
 
-        // 2. เริ่มการต่อสู้หลัก
+       
         battleStarted = true;
-        isInvincible = false; // เปิดให้อ่อนแอลง
-        currentPhase = Phase.Phase1; // เริ่ม Phase 1
+        isInvincible = false; 
+        currentPhase = Phase.Phase1; 
         Debug.Log("Phase 1 Combat Started!");
 
-        // 3. เข้าสู่ Coroutine วนลูปหลัก
+      
         yield return StartCoroutine(BossRoutine());
     }
 
 
-    // Coroutine สำหรับการติดตั้ง Animation และ Prefab ถาวร
+    
     IEnumerator SuperAttackRoutine()
     {
-        // ตรวจสอบว่าเคยสร้างของตกแต่งถาวรแล้วหรือยัง (เพื่อไม่ให้สร้างซ้ำ)
+       
         if (permanentDecoration != null)
         {
             yield break;
@@ -173,21 +173,20 @@ public class Boss2 : MonoBehaviour
 
         Debug.Log("Starting Permanent Super Attack Animation and Decoration");
 
-        // 1. เล่น Animation ท่าโจมตีใหม่ (Animation นี้ต้องตั้งค่าให้วนลูปใน Unity Animator)
+       
         if (bossAnimator != null) bossAnimator.Play(superAttackAnimationName);
 
-        // 2. สร้าง Prefab ของตกแต่งเป็น Child ของบอส
+       
         if (decorationPrefab != null)
         {
-            // Instantiates the decoration as a child of the boss's transform
-            // เก็บ Reference ไว้ใน permanentDecoration
+           
             permanentDecoration = Instantiate(decorationPrefab, transform.position, Quaternion.identity, transform);
 
-            // 3. ปรับตำแหน่ง Z เพื่อให้อยู่ด้านหลัง และ ปรับตำแหน่ง Y ด้วย decorationOffsetY
-            permanentDecoration.transform.localPosition = new Vector3(0, decorationOffsetY, 1f); // ⭐ MODIFIED
+            
+            permanentDecoration.transform.localPosition = new Vector3(0, decorationOffsetY, 1f); 
         }
 
-        // Coroutine นี้จะจบลงทันที ทำให้การต่อสู้หลักสามารถดำเนินต่อไปได้ทันที
+       
         yield break;
     }
 
@@ -213,7 +212,7 @@ public class Boss2 : MonoBehaviour
             }
             yield return null;
 
-            // ตรวจสอบว่าบอสตายหรือไม่ เพื่อหยุด Coroutine หลัก
+           
             if (isDefeated) yield break;
         }
     }
@@ -232,11 +231,11 @@ public class Boss2 : MonoBehaviour
     {
         Debug.Log("Frenzy Phase Started! Moving Platform and Boss. Using only Horizontal Attack.");
 
-        // 1. เคลื่อนที่ไปกลางจอ
+      
         yield return StartCoroutine(MoveTo(centerPoint.position, moveSpeed * 1.2f));
         if (isDefeated) yield break;
 
-        // 2. NEW: เลื่อน Platform ขึ้นมา
+        
         if (playerPlatform != null)
         {
             yield return StartCoroutine(MovePlatform(playerPlatform.transform, platformMoveToPosition, platformMoveDuration));
@@ -246,25 +245,25 @@ public class Boss2 : MonoBehaviour
         float timer = 0f;
         float frenzyDuration = 10f;
 
-        // NEW: วนลูปยิงท่าโจมตีแนวนอนเท่านั้น
+       
         while (timer < frenzyDuration)
         {
-            // ⭐ [FIX 4] คำนวณเวลาที่ใช้ในการโจมตีหนึ่งรอบ (ชาร์จ + ยิงค้าง)
+            
             float attackTime = frenzyHorizontalAttackCharge + frenzyHorizontalAttackDuration;
 
             yield return StartCoroutine(FrenzyHorizontalAttack());
 
-            // เพิ่มเวลาที่ใช้ในการโจมตีหนึ่งรอบ
+           
             timer += attackTime;
 
-            // หน่วงเวลาระหว่างรอบการโจมตี
+           
             yield return new WaitForSeconds(frenzyHorizontalAttackInterval);
             timer += frenzyHorizontalAttackInterval;
 
             if (isDefeated) yield break;
         }
 
-        // 3. NEW: เลื่อน Platform กลับลงไป
+       
         if (playerPlatform != null)
         {
             yield return StartCoroutine(MovePlatform(playerPlatform.transform, platformOriginalPosition, platformMoveDuration));
@@ -274,31 +273,30 @@ public class Boss2 : MonoBehaviour
         currentPhase = Phase.Overload;
     }
 
-    // Coroutine สำหรับการโจมตีแนวนอน Frenzy (ชาร์จ 3 วินาที)
+    
     IEnumerator FrenzyHorizontalAttack()
     {
         Debug.Log("Frenzy Horizontal Attack Charged! Waiting for " + frenzyHorizontalAttackCharge + " seconds.");
 
-        // 1. ชาร์จ (3 วินาที)
+       
         PlaySound(chargeSFX);
         yield return new WaitForSeconds(frenzyHorizontalAttackCharge);
         if (isDefeated) yield break;
 
-        // 2. ยิงท่าโจมตีแนวนอน
+       
         if (frenzyHorizontalAttackPrefab != null && horizontalAttackSpawnPoint != null)
         {
-            // Instantiates ท่าโจมตีที่ตำแหน่งยิงที่กำหนด
-            // ⭐ [FIX 1] เก็บ Reference ของ Laser ที่ถูกสร้างขึ้นมา ⭐
+            
             GameObject laserInstance = Instantiate(frenzyHorizontalAttackPrefab, horizontalAttackSpawnPoint.position, Quaternion.identity);
 
-            // เสียงยิง
+            
             PlaySound(shootSFX_Frenzy);
 
-            // ⭐ [FIX 2] รอให้ Laser ค้างอยู่บนจอตามเวลาที่กำหนด ⭐
+           
             Debug.Log($"Laser Fired! Active for {frenzyHorizontalAttackDuration} seconds.");
             yield return new WaitForSeconds(frenzyHorizontalAttackDuration);
 
-            // ⭐ [FIX 3] ทำลาย Laser หลังจากหมดเวลา ⭐
+            
             if (laserInstance != null)
             {
                 Destroy(laserInstance);
@@ -307,11 +305,11 @@ public class Boss2 : MonoBehaviour
         }
         else
         {
-            // หากไม่มี Prefab/SpawnPoint ต้องรอเวลาค้างไว้ด้วย มิฉะนั้นจะยิงเร็วเกินไป
+            
             yield return new WaitForSeconds(frenzyHorizontalAttackDuration);
         }
 
-        // 🔴 ลบ: 'yield return new WaitForSeconds(1f);' ออก
+       
     }
 
     IEnumerator OverloadRoutine()
@@ -319,7 +317,7 @@ public class Boss2 : MonoBehaviour
         yield return StartCoroutine(MoveTo(overloadPoint.position, moveSpeed));
         if (isDefeated) yield break;
 
-        // 🔴 เริ่ม Coroutine การเสกมอนสเตอร์ทันทีที่เข้าสู่ Overload/Phase 2
+       
         if (phase2EnemyPrefab != null && phase2SpawnPoints.Length > 0)
         {
             enemySpawnRoutine = StartCoroutine(SpawnEnemiesRoutine());
@@ -331,7 +329,7 @@ public class Boss2 : MonoBehaviour
         currentPhase = Phase.Phase2;
     }
 
-    // ⭐ Coroutine สำหรับการสุ่มเสกมอนสเตอร์จากจุดที่กำหนด ⭐
+    
     IEnumerator SpawnEnemiesRoutine()
     {
         if (phase2EnemyPrefab == null)
@@ -347,15 +345,15 @@ public class Boss2 : MonoBehaviour
 
         while (!isDefeated)
         {
-            // 1. สุ่มเลือกจุดเกิดจาก Array
+           
             int randomIndex = UnityEngine.Random.Range(0, phase2SpawnPoints.Length);
             Transform spawnPoint = phase2SpawnPoints[randomIndex];
 
-            // 2. เสกศัตรูที่ตำแหน่งของจุดเกิดที่สุ่มมา
+            
             Instantiate(phase2EnemyPrefab, spawnPoint.position, Quaternion.identity);
             Debug.Log("Spawned enemy at point: " + randomIndex);
 
-            // 3. รอตามช่วงเวลาที่กำหนด
+           
             yield return new WaitForSeconds(spawnInterval);
         }
     }

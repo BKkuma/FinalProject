@@ -91,10 +91,10 @@ public class GodArsenalCheat : MonoBehaviour
             SetIntOnPlayerShooting("homingAmmo", infiniteAmmoAmount);
         }
 
-        // 3) If weapon slot manager exists, add weapons to slots (so UI shows them)
+      
         if (slotManager != null)
         {
-            // try to add MachineGun, Shotgun, HomingGun using known method AddWeaponToSlot(string,int,GameObject)
+           
             MethodInfo addMethod = slotManager.GetType().GetMethod("AddWeaponToSlot", BindingFlags.Instance | BindingFlags.Public);
             if (addMethod != null)
             {
@@ -111,17 +111,14 @@ public class GodArsenalCheat : MonoBehaviour
 
     void DisableGodArsenal()
     {
-        // ⭐ [FIX]: ปิด isGodModeActive โดยตรง
+       
         if (playerHealth != null)
         {
             playerHealth.isGodModeActive = false;
             Debug.Log("God Mode deactivated.");
         }
 
-        // restore invincible (ไม่จำเป็นต้องทำอะไรอีก เพราะ TakeDamage จะไปใช้ isInvincible 
-        // ปกติเมื่อ isGodModeActive เป็น false)
-
-        // restore ammo values if we read them earlier
+        
         if (origMGAmmo >= 0) SetIntOnPlayerShooting("machineGunAmmo", origMGAmmo);
         if (origSGAmmo >= 0) SetIntOnPlayerShooting("shotgunAmmo", origSGAmmo);
         if (origHGAmmo >= 0) SetIntOnPlayerShooting("homingAmmo", origHGAmmo);
@@ -129,7 +126,7 @@ public class GodArsenalCheat : MonoBehaviour
         Debug.Log("GodArsenalCheat: restored ammo/invincible where possible.");
     }
 
-    // ---- helpers (best-effort using reflection) ----
+   
     int GetIntFromPlayerShootingFieldOrProp(string fieldName, string propName, int defaultValue = 0)
     {
         if (playerShooting == null) return defaultValue;
@@ -163,7 +160,7 @@ public class GodArsenalCheat : MonoBehaviour
         if (field != null) field.SetValue(playerShooting, value);
     }
 
-    // helper to try common prop name mapping (machineGunAmmo -> MachineGunAmmo)
+    
     string propNameToProp(string fieldName)
     {
         if (string.IsNullOrEmpty(fieldName)) return fieldName;
@@ -171,16 +168,16 @@ public class GodArsenalCheat : MonoBehaviour
         return s;
     }
 
-    // 🔴 ลบฟังก์ชันนี้ทิ้ง เนื่องจากไม่จำเป็นต้องตั้งค่า isInvincible ผ่าน Reflection อีกต่อไป
+    
     void SetPlayerHealthBool(string fieldName, string propName, bool value)
     {
-        // NOOP: Function removed/disabled. We use playerHealth.isGodModeActive directly now.
+       
     }
 
-    // 🔴 ลบฟังก์ชันนี้ทิ้ง เนื่องจากไม่จำเป็นต้องอ่านค่า isInvincible ผ่าน Reflection อีกต่อไป
+    
     bool GetBoolFromPlayerHealthFieldOrProp(string fieldName, string propName, bool defaultValue = false)
     {
-        return defaultValue; // Return default as we no longer read this value
+        return defaultValue; 
     }
 
     object GetObjectFieldOrProp(object obj, string fieldName, string propName, string fallback)
@@ -191,7 +188,7 @@ public class GodArsenalCheat : MonoBehaviour
         var f = obj.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
         if (f != null) return f.GetValue(obj);
 
-        // try fallback name
+       
         var f2 = obj.GetType().GetField(fallback, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
         if (f2 != null) return f2.GetValue(obj);
 
@@ -216,7 +213,7 @@ public class GodArsenalCheat : MonoBehaviour
         return false;
     }
 
-    // wrapper to read bool from playerHealth (used for saving)
+    
     bool GetBoolFromPlayerHealthFieldOrProp(string fieldName, string propName)
     {
         return GetBoolFromPlayerHealthFieldOrProp(fieldName, propName, false);

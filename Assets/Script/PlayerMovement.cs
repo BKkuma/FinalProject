@@ -14,7 +14,7 @@ public class PlayerMovement : MonoBehaviour
     [Header("Effects")]
     public GameObject jumpEffectPrefab;
 
-    // ⭐ แก้ไข: ตัวแปรล็อคการควบคุมการรับ Input
+    
     [HideInInspector]
     public bool isLocked = false;
 
@@ -33,14 +33,12 @@ public class PlayerMovement : MonoBehaviour
     private Vector2 originalOffset;
     private Animator animator;
 
-    // Properties สำหรับเข้าถึงจากภายนอก
+    
     public bool IsCrouching => isCrouching;
     public Vector2 ShootDirection => shootDirection;
     public bool IsFacingRight => !spriteRenderer.flipX;
 
-    // ----------------------------------------------------
-    // Start & Update
-    // ----------------------------------------------------
+   
 
     void Start()
     {
@@ -57,7 +55,7 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
-        // ⭐ NEW: ล็อคการรับ Input ทั้งหมดถ้า isLocked เป็น true
+        
         if (isLocked)
             return;
 
@@ -67,9 +65,7 @@ public class PlayerMovement : MonoBehaviour
         Crouch();
     }
 
-    // ----------------------------------------------------
-    // Movement & Actions
-    // ----------------------------------------------------
+    
 
     void Move()
     {
@@ -182,7 +178,7 @@ public class PlayerMovement : MonoBehaviour
 
     void Crouch()
     {
-        // **1. CROUCH DOWN / STAY CROUCHED**
+        
         if (Input.GetKey(KeyCode.LeftShift) && IsGrounded())
         {
             if (!isCrouching)
@@ -202,7 +198,7 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        // **2. STAND UP TRIGGER (เมื่อปล่อยปุ่ม)**
+       
         if (Input.GetKeyUp(KeyCode.LeftShift) && isCrouching)
         {
             isCrouching = false;
@@ -214,7 +210,7 @@ public class PlayerMovement : MonoBehaviour
             animator.SetBool("isCrouchIdle", false);
         }
 
-        // **3. FORCED STAND UP (เมื่อตกจากขอบขณะย่อตัว)**
+        
         if (isCrouching && !IsGrounded() && !Input.GetKey(KeyCode.LeftShift))
         {
             isCrouching = false;
@@ -227,9 +223,7 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    // ----------------------------------------------------
-    // Collision & Ground Check
-    // ----------------------------------------------------
+    
 
     void OnCollisionEnter2D(Collision2D collision)
     {
